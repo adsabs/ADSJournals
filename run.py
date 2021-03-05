@@ -3,6 +3,7 @@ No.
 '''
 from __future__ import print_function
 import argparse
+import os
 from adsputils import setup_logging, load_config
 from journals import tasks
 from journals import utils

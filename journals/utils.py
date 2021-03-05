@@ -30,7 +30,7 @@ def normalize(instring):
 
 def read_bibstems_list():
     data = {}
-    infile = config.JDB_DATA_DIR + config.BIBSTEMS_FILE
+    infile = config.BIBSTEMS_FILE
     try:
         with open(infile, 'rU') as f:
             nbibstem = f.readline()
@@ -49,7 +49,7 @@ def read_bibstems_list():
 
 def read_abbreviations_list():
     datadict = {}
-    infile = config.JDB_DATA_DIR + config.JOURNAL_ABBREV_FILE
+    infile = config.JOURNAL_ABBREV_FILE
     with open(infile, 'rU') as f:
         for l in f.readlines():
             (bibstem_abbrev, abbrev) = l.rstrip().split('\t')
@@ -69,7 +69,7 @@ def read_abbreviations_list():
 
 def read_canonical_list():
     bibc = []
-    infile = config.JDB_DATA_DIR + config.CANONICAL_BIB_FILE
+    infile = config.CANONICAL_BIB_FILE
     try:
         with open(infile, 'rU') as f:
             for l in f.readlines():
@@ -126,7 +126,7 @@ def read_complete_csvs():
 
 
 def read_raster_xml(masterdict):
-    raster_dir = config.JDB_DATA_DIR + config.RASTER_CONFIG_DIR
+    raster_dir = config.RASTER_CONFIG_DIR
     recs = []
     for bibstem, masterid in list(masterdict.items()):
         raster_file = raster_dir + bibstem + '.xml'
