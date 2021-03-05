@@ -1,3 +1,5 @@
+LOGGING_LEVEL = 'INFO'
+LOG_STDOUT = True
 '''
     configuration file for ADSJournals system
 '''

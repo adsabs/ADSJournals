@@ -3,9 +3,15 @@ No.
 '''
 from __future__ import print_function
 import argparse
-from adsputils import setup_logging
+from adsputils import setup_logging, load_config
 from journals import tasks
 from journals import utils
+
+proj_home = os.path.realpath(os.path.dirname(__file__))
+config = load_config(proj_home=proj_home)
+logger = setup_logging('run.py', proj_home=proj_home,
+                       level=config.get('LOGGING_LEVEL', 'INFO'),
+                       attach_stdout=config.get('LOG_STDOUT', False))
 
 
 
@@ -62,10 +68,10 @@ def load_master_table():
         journal_name = value['pubname']
         recs.append((bibstem, pubtype, journal_name))
     if recs:
-        print("Inserting %s bibstems into Master", len(recs))
+        logger.info("Inserting %s bibstems into Master", len(recs))
         tasks.task_db_bibstems_to_master(recs)
     else:
-        print("No bibstems to insert")
+        logger.info("No bibstems to insert")
     return
 
 
@@ -76,14 +82,13 @@ def load_rasterconfig(masterdict):
     try:
         recsr = utils.read_raster_xml(masterdict)
     except Exception as e:
-        print('error in utils.read_raster_xml:',e)
+        logger.warn('error in utils.read_raster_xml: %s' % e)
     else:
-        # LOGGER.debug("Inserting %s raster config records", len(recsr))
-        print('lol %s recs' % len(recsr))
-        # try:
-        tasks.task_db_load_raster(recsr)
-        # except Exception as err:
-        #     LOGGER.error("Could not load raster config: %s", err)
+        logger.info("Inserting %s raster config records" % len(recsr))
+        try:
+            tasks.task_db_load_raster(recsr)
+        except Exception as err:
+            logger.warn("Could not load raster config: %s" % err)
     return
 
 
@@ -96,24 +101,24 @@ def load_abbreviations(masterdict):
     for key, value in list(abbrevs.items()):
         try:
             if key in masterdict:
-                print("Got masterid for bibstem %s", key)
+                logger.debug("Got masterid for bibstem %s", key)
                 masterid = masterdict[key]
                 for attrib in value:
                     recs.append((masterid, attrib))
             else:
-                print("No masterid for bibstem %s", key)
+                logger.debug("No masterid for bibstem %s", key)
         except Exception as err:
-            print("Error with bibstem %s", key)
-            print("Error: %s", err)
+            logger.warn("Error with bibstem %s", key)
+            logger.warn("Error: %s", err)
     if recs:
-        print("Inserting %s abbreviations into Abbreviations",
+        logger.info("Inserting %s abbreviations into Abbreviations",
                      len(recs))
         try:
             tasks.task_db_load_abbrevs(recs)
         except Exception as err:
-            print("Could not load abbreviations: %s", err)
+            logger.info("Could not load abbreviations: %s" % err)
     else:
-        print("There are no abbreviations to load.")
+        logger.info("There are no abbreviations to load.")
     return
 
 
@@ -128,7 +133,7 @@ def load_completeness(masterdict):
     for key, value in list(pub_dict.items()):
         try:
             if key in masterdict:
-                print("Got masterid for bibstem %s", key)
+                logger.debug("Got masterid for bibstem %s", key)
                 mid = masterdict[key]
                 c = value['startyear']
                 d = value['startvol']
@@ -145,10 +150,10 @@ def load_completeness(masterdict):
                     recsp.append((mid, value['publisher'], value['url']))
 
             else:
-                print("No mid for bibstem %s", key)
+                logger.debug("No mid for bibstem %s", key)
         except Exception as err:
-            print("Error with bibstem %s", key)
-            print("Error: %s", err)
+            logger.warn("Error with bibstem %s", key)
+            logger.warn("Error: %s", err)
     if recsi:
         tasks.task_db_load_issn(recsi)
     if recsx:
@@ -165,7 +170,7 @@ def calc_holdings(masterdict, json_file):
     try:
         tasks.task_db_load_holdings(masterdict, json_file)
     except Exception as err:
-        print("Failed to load holdings: %s", err)
+        logger.warn("Failed to load holdings: %s", err)
     return
 
 
@@ -187,9 +192,9 @@ def main():
     # journals.master, so try to load it
     try:
         masterdict = tasks.task_db_get_bibstem_masterid()
-        print("masterdict has %s records", len(masterdict))
+        logger.info("masterdict has %s records", len(masterdict))
     except Exception as err:
-        print("Error reading master table bibstem-masterid mapping: %s",
+        logger.warn("Error reading master table bibstem-masterid mapping: %s",
             err)
     else:
         # load bibstem-journal name abbreviation pairs
