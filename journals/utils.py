@@ -131,7 +131,6 @@ def read_raster_xml(masterdict):
     for bibstem, masterid in list(masterdict.items()):
         raster_file = raster_dir + bibstem + '.xml'
         if os.path.isfile(raster_file):
-            print('lol file:', raster_file)
             with open(raster_file, 'rU') as fx:
                 filestem = raster_file.split('/')[-1].rstrip('.xml')
                 data = fx.read().rstrip()

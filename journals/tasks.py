@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from builtins import str
+import os
 from kombu import Queue
 from journals import app as app_module
 from journals.models import *
@@ -16,8 +17,11 @@ class DBReadException(Exception):
     """Non-recoverable Error with making database selection."""
     pass
 
+proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 
-app = app_module.ADSJournalsCelery('journals')
+
+app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globals().get('config', {}), local_config=globals().get('local_config', {}))
+)
 logger = app.logger
 
 app.conf.CELERY_QUEUES = (
@@ -176,7 +180,6 @@ def task_db_load_raster(recs):
                                                embargo=embargo,
                                                options=options))
                     beew = session.commit()
-                    print("beeeeeeew! %s", beew)
                 except Exception as e:
                     logger.warn("Cant load raster data for (%s, %s): %s" %
                                 (r[0], bibstem, e))
