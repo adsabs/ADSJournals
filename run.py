@@ -7,7 +7,6 @@ from adsputils import setup_logging
 from journals import tasks
 from journals import utils
 
-LOGGER = setup_logging('run.py')
 
 
 def get_arguments():
@@ -63,10 +62,10 @@ def load_master_table():
         journal_name = value['pubname']
         recs.append((bibstem, pubtype, journal_name))
     if recs:
-        LOGGER.debug("Inserting %s bibstems into Master", len(recs))
+        print("Inserting %s bibstems into Master", len(recs))
         tasks.task_db_bibstems_to_master(recs)
     else:
-        LOGGER.warn("No bibstems to insert")
+        print("No bibstems to insert")
     return
 
 
@@ -97,24 +96,24 @@ def load_abbreviations(masterdict):
     for key, value in list(abbrevs.items()):
         try:
             if key in masterdict:
-                LOGGER.debug("Got masterid for bibstem %s", key)
+                print("Got masterid for bibstem %s", key)
                 masterid = masterdict[key]
                 for attrib in value:
                     recs.append((masterid, attrib))
             else:
-                LOGGER.debug("No masterid for bibstem %s", key)
+                print("No masterid for bibstem %s", key)
         except Exception as err:
-            LOGGER.warn("Error with bibstem %s", key)
-            LOGGER.warn("Error: %s", err)
+            print("Error with bibstem %s", key)
+            print("Error: %s", err)
     if recs:
-        LOGGER.debug("Inserting %s abbreviations into Abbreviations",
+        print("Inserting %s abbreviations into Abbreviations",
                      len(recs))
         try:
             tasks.task_db_load_abbrevs(recs)
         except Exception as err:
-            LOGGER.error("Could not load abbreviations: %s", err)
+            print("Could not load abbreviations: %s", err)
     else:
-        LOGGER.warn("There are no abbreviations to load.")
+        print("There are no abbreviations to load.")
     return
 
 
@@ -129,7 +128,7 @@ def load_completeness(masterdict):
     for key, value in list(pub_dict.items()):
         try:
             if key in masterdict:
-                LOGGER.debug("Got masterid for bibstem %s", key)
+                print("Got masterid for bibstem %s", key)
                 mid = masterdict[key]
                 c = value['startyear']
                 d = value['startvol']
@@ -146,10 +145,10 @@ def load_completeness(masterdict):
                     recsp.append((mid, value['publisher'], value['url']))
 
             else:
-                LOGGER.debug("No mid for bibstem %s", key)
+                print("No mid for bibstem %s", key)
         except Exception as err:
-            LOGGER.warn("Error with bibstem %s", key)
-            LOGGER.warn("Error: %s", err)
+            print("Error with bibstem %s", key)
+            print("Error: %s", err)
     if recsi:
         tasks.task_db_load_issn(recsi)
     if recsx:
@@ -166,7 +165,7 @@ def calc_holdings(masterdict, json_file):
     try:
         tasks.task_db_load_holdings(masterdict, json_file)
     except Exception as err:
-        LOGGER.error("Failed to load holdings: %s", err)
+        print("Failed to load holdings: %s", err)
     return
 
 
@@ -188,10 +187,10 @@ def main():
     # journals.master, so try to load it
     try:
         masterdict = tasks.task_db_get_bibstem_masterid()
-        LOGGER.info("masterdict has %s records", len(masterdict))
+        print("masterdict has %s records", len(masterdict))
     except Exception as err:
-        LOGGER.error("Error reading master table bibstem-masterid mapping: %s",
-                     err)
+        print("Error reading master table bibstem-masterid mapping: %s",
+            err)
     else:
         # load bibstem-journal name abbreviation pairs
         if args.load_abbrevs:
