@@ -1,5 +1,6 @@
 from __future__ import print_function
 from bs4 import BeautifulSoup as bs
+import chardet
 import config
 from namedentities import named_entities, unicode_entities
 import os
@@ -12,12 +13,19 @@ class ReadBibstemException(Exception):
 class ReadCanonicalException(Exception):
     pass
 
+def get_encoding(filename):
+    try:
+        encoding = chardet.detect(open(infile, 'rb').read())['encoding']
+        return encoding
+    except Exception as err:
+        return 'utf-8'
+
 
 def read_bibstems_list():
     data = {}
     infile = config.BIBSTEMS_FILE
     try:
-        with open(infile, 'r') as f:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
             nbibstem = f.readline()
             for l in f.readlines():
                 (bibstem, bstype, bspubname) = l.rstrip().split('\t')
@@ -36,7 +44,7 @@ def read_abbreviations_list():
     datadict = {}
     infile = config.JOURNAL_ABBREV_FILE
     try:
-        with open(infile, 'r') as f:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
             for l in f.readlines():
                 (bibstem_abbrev, abbrev) = l.rstrip().split('\t')
                 bibstem_abbrev = bibstem_abbrev.rstrip('.').lstrip('.')
@@ -59,7 +67,7 @@ def read_canonical_list():
     bibc = []
     infile = config.CANONICAL_BIB_FILE
     try:
-        with open(infile, 'r') as f:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
             for l in f.readlines():
                 (bibcode, a, b, c) = l.rstrip().split('\t')
                 bibc.append(bibcode)
@@ -73,7 +81,7 @@ def read_complete_csvs():
     for coll in config.COLLECTIONS:
         infile = config.JDB_DATA_DIR + 'completion.' + coll + '.csv'
         try:
-            with open(infile, 'r') as f:
+            with open(infile, 'r', encoding=get_encoding(infile)) as f:
                 f.readline()
                 f.readline()
                 for l in f.readlines():
