@@ -1,5 +1,6 @@
 from __future__ import print_function
 from bs4 import BeautifulSoup as bs
+import chardet
 import config
 from namedentities import named_entities, unicode_entities
 import os
@@ -12,27 +13,19 @@ class ReadBibstemException(Exception):
 class ReadCanonicalException(Exception):
     pass
 
-
-def normalize(instring):
-    # input from whatever, output to unicode
+def get_encoding(filename):
     try:
-        work_string = instring.decode('utf-8')
+        encoding = chardet.detect(open(infile, 'rb').read())['encoding']
+        return encoding
     except Exception as err:
-        try:
-            work_string = instring.decode('iso-8859-1')
-        except Exception as err:
-            try:
-                work_string = instring.decode('cp1252-1')
-            except Exception as err:
-                return unicode_entities(instring)
-    return unicode_entities(work_string)
+        return 'utf-8'
 
 
 def read_bibstems_list():
     data = {}
-    infile = config.JDB_DATA_DIR + config.BIBSTEMS_FILE
+    infile = config.BIBSTEMS_FILE
     try:
-        with open(infile, 'rU') as f:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
             nbibstem = f.readline()
             for l in f.readlines():
                 (bibstem, bstype, bspubname) = l.rstrip().split('\t')
@@ -49,29 +42,32 @@ def read_bibstems_list():
 
 def read_abbreviations_list():
     datadict = {}
-    infile = config.JDB_DATA_DIR + config.JOURNAL_ABBREV_FILE
-    with open(infile, 'rU') as f:
-        for l in f.readlines():
-            (bibstem_abbrev, abbrev) = l.rstrip().split('\t')
-            bibstem_abbrev = bibstem_abbrev.rstrip('.').lstrip('.')
-            abbrev = normalize(abbrev)
-            abbrev = abbrev.lstrip().rstrip()
-            if bibstem_abbrev in datadict:
-                if abbrev not in datadict[bibstem_abbrev]:
-                    datadict[bibstem_abbrev].append(abbrev)
+    infile = config.JOURNAL_ABBREV_FILE
+    try:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
+            for l in f.readlines():
+                (bibstem_abbrev, abbrev) = l.rstrip().split('\t')
+                bibstem_abbrev = bibstem_abbrev.rstrip('.').lstrip('.')
+                abbrev = abbrev.lstrip().rstrip()
+                if bibstem_abbrev in datadict:
+                    if abbrev not in datadict[bibstem_abbrev]:
+                        datadict[bibstem_abbrev].append(abbrev)
+                    else:
+                        # logger.warn("Duplicate abbreviation: {0}".format(abbrev))
+                        pass
                 else:
-                    # logger.warn("Duplicate abbreviation: {0}".format(abbrev))
-                    pass
-            else:
-                datadict[bibstem_abbrev] = [abbrev]
+                    datadict[bibstem_abbrev] = [abbrev]
+    except Exception as err:
+        # logger.warn("Problem reading abbreviations file: %s" % err)
+        pass
     return datadict
 
 
 def read_canonical_list():
     bibc = []
-    infile = config.JDB_DATA_DIR + config.CANONICAL_BIB_FILE
+    infile = config.CANONICAL_BIB_FILE
     try:
-        with open(infile, 'rU') as f:
+        with open(infile, 'r', encoding=get_encoding(infile)) as f:
             for l in f.readlines():
                 (bibcode, a, b, c) = l.rstrip().split('\t')
                 bibc.append(bibcode)
@@ -85,7 +81,7 @@ def read_complete_csvs():
     for coll in config.COLLECTIONS:
         infile = config.JDB_DATA_DIR + 'completion.' + coll + '.csv'
         try:
-            with open(infile, 'rU') as f:
+            with open(infile, 'r', encoding=get_encoding(infile)) as f:
                 f.readline()
                 f.readline()
                 for l in f.readlines():
@@ -126,59 +122,62 @@ def read_complete_csvs():
 
 
 def read_raster_xml(masterdict):
-    raster_dir = config.JDB_DATA_DIR + config.RASTER_CONFIG_DIR
+    raster_dir = config.RASTER_CONFIG_DIR
     recs = []
     for bibstem, masterid in list(masterdict.items()):
         raster_file = raster_dir + bibstem + '.xml'
         if os.path.isfile(raster_file):
-            with open(raster_file, 'rU') as fx:
-                filestem = raster_file.split('/')[-1].rstrip('.xml')
-                data = fx.read().rstrip()
-                soup = bs(data, 'html5lib')
-                pub = soup.find('publication')
-
-                # get volume specific parameters
-                volume_specific = pub.find_all('volumes')
-                volumes = []
-                if volume_specific:
-                    for v in volume_specific:
-                        vol_param = dict()
-                        vol_range = dict()
-                        for t in v.children:
-                            if t.name:
-                                try:
-                                    vol_param[t.name] = t.contents[0].strip()
-                                    if not vol_param[t.name]:
-                                        del vol_param[t.name]
-                                except Exception as err:
-                                    pass
-                                    # print(('volumening problem:', err))
-                        if vol_param:
-                            vol_range['range'] = v['range']
-                            vol_range['param'] = vol_param
-                            volumes.append(vol_range)
-
-                # now make a dict of the general params
-                global_param = dict()
-                for t in pub.children:
-                    if t.name:
-                        try:
-                            global_param[t.name] = t.contents[0].strip()
-                            if not global_param[t.name]:
-                                del global_param[t.name]
-                        except Exception as err:
-                            if t.name == 'bibstem':
-                                global_param['bibstem'] = filestem
-                            # else:
-                                # print "Error in %s: %s\t%s"%(filestem,t.name,err)
-                try:
-                    if volumes:
-                        # add volume-specific params to dict as an array
-                        global_param['rastervol'] = volumes
-                except Exception as err:
-                    pass
-                # print(('ERROR:', err))
-                recs.append((masterid,global_param))
+            try:
+                with open(raster_file, 'r') as fx:
+                    filestem = raster_file.split('/')[-1].rstrip('.xml')
+                    data = fx.read().rstrip()
+                    soup = bs(data, 'html5lib')
+                    pub = soup.find('publication')
+    
+                    # get volume specific parameters
+                    volume_specific = pub.find_all('volumes')
+                    volumes = []
+                    if volume_specific:
+                        for v in volume_specific:
+                            vol_param = dict()
+                            vol_range = dict()
+                            for t in v.children:
+                                if t.name:
+                                    try:
+                                        vol_param[t.name] = t.contents[0].strip()
+                                        if not vol_param[t.name]:
+                                            del vol_param[t.name]
+                                    except Exception as err:
+                                        pass
+                                        # print(('volumening problem:', err))
+                            if vol_param:
+                                vol_range['range'] = v['range']
+                                vol_range['param'] = vol_param
+                                volumes.append(vol_range)
+    
+                    # now make a dict of the general params
+                    global_param = dict()
+                    for t in pub.children:
+                        if t.name:
+                            try:
+                                global_param[t.name] = t.contents[0].strip()
+                                if not global_param[t.name]:
+                                    del global_param[t.name]
+                            except Exception as err:
+                                if t.name == 'bibstem':
+                                    global_param['bibstem'] = filestem
+                                # else:
+                                    # print "Error in %s: %s\t%s"%(filestem,t.name,err)
+                    try:
+                        if volumes:
+                            # add volume-specific params to dict as an array
+                            global_param['rastervol'] = volumes
+                    except Exception as err:
+                        pass
+                    # print(('ERROR:', err))
+                    recs.append((masterid,global_param))
+            except Exception as err:
+                pass
     return recs
 
 

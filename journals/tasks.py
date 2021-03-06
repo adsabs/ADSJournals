@@ -21,7 +21,6 @@ proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 
 
 app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globals().get('config', {}), local_config=globals().get('local_config', {}))
-)
 logger = app.logger
 
 app.conf.CELERY_QUEUES = (
