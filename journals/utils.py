@@ -4,6 +4,7 @@ import chardet
 import config
 from namedentities import named_entities, unicode_entities
 import os
+from glob import glob
 
 
 class ReadBibstemException(Exception):
@@ -128,14 +129,14 @@ def read_complete_csvs():
 
 def read_raster_xml(masterdict):
     raster_dir = config.RASTER_CONFIG_DIR
+    xml_files = glob(raster_dir+"*.xml")
     recs = []
-    for bibstem, masterid in list(masterdict.items()):
-        raster_file = raster_dir + bibstem + '.xml'
-        print("raster file: %s" % raster_file)
-        if os.path.isfile(raster_file):
-            print("yay! isfile: %s" % raster_file)
+    for raster_file in xml_files:
+        bibstem = raster_file.replace(raster_dir,'').replace('.xml','')
+        if bibstem in masterdict.keys():
+            masterid = masterdict[bibstem]
             try:
-                with open(raster_file, 'r') as fx:
+                with open(raster_file, 'r', encoding=get_encoding(raster_file)) as fx:
                     filestem = raster_file.split('/')[-1].rstrip('.xml')
                     data = fx.read().rstrip()
                     soup = bs(data, 'html5lib')
