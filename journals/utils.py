@@ -13,12 +13,17 @@ class ReadBibstemException(Exception):
 class ReadCanonicalException(Exception):
     pass
 
+
+class ReadEncodingException(Exception):
+    pass
+
+
 def get_encoding(filename):
     try:
         encoding = chardet.detect(open(infile, 'rb').read())['encoding']
         return encoding
     except Exception as err:
-        return 'utf-8'
+        raise ReadEncodingException(err)
 
 
 def read_bibstems_list():
