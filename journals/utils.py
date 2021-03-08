@@ -132,6 +132,7 @@ def read_raster_xml(masterdict):
     for bibstem, masterid in list(masterdict.items()):
         raster_file = raster_dir + bibstem + '.xml'
         if os.path.isfile(raster_file):
+            print("yay! isfile: %s" % raster_file)
             try:
                 with open(raster_file, 'r') as fx:
                     filestem = raster_file.split('/')[-1].rstrip('.xml')
@@ -153,8 +154,7 @@ def read_raster_xml(masterdict):
                                         if not vol_param[t.name]:
                                             del vol_param[t.name]
                                     except Exception as err:
-                                        pass
-                                        # print(('volumening problem:', err))
+                                        print(('volumening problem:', err))
                             if vol_param:
                                 vol_range['range'] = v['range']
                                 vol_range['param'] = vol_param
@@ -171,15 +171,14 @@ def read_raster_xml(masterdict):
                             except Exception as err:
                                 if t.name == 'bibstem':
                                     global_param['bibstem'] = filestem
-                                # else:
-                                    # print "Error in %s: %s\t%s"%(filestem,t.name,err)
+                                else:
+                                    print("Error in %s: %s\t%s"%(filestem,t.name,err))
                     try:
                         if volumes:
                             # add volume-specific params to dict as an array
                             global_param['rastervol'] = volumes
                     except Exception as err:
-                        pass
-                    # print(('ERROR:', err))
+                        print(('ERROR:', err))
                     recs.append((masterid,global_param))
             except Exception as err:
                 pass
