@@ -20,7 +20,7 @@ class ReadEncodingException(Exception):
 
 def get_encoding(filename):
     try:
-        encoding = chardet.detect(open(infile, 'rb').read())['encoding']
+        encoding = chardet.detect(open(filename, 'rb').read())['encoding']
         return encoding
     except Exception as err:
         raise ReadEncodingException(err)
