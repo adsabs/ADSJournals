@@ -151,7 +151,7 @@ def parse_raster_volume_data(pubsoup):
     return volumes
 
 
-def parse_raster_pub_data(pubsoup)
+def parse_raster_pub_data(pubsoup):
     global_param = dict()
     for t in pubsoup.children:
         if t.name:
