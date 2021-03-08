@@ -130,6 +130,7 @@ def read_raster_xml(masterdict):
     raster_dir = config.RASTER_CONFIG_DIR
     recs = []
     for bibstem, masterid in list(masterdict.items()):
+        print("HAHA: %s | %s" % (bibstem, masterid))
         raster_file = raster_dir + bibstem + '.xml'
         if os.path.isfile(raster_file):
             print("yay! isfile: %s" % raster_file)
