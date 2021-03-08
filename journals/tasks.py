@@ -127,7 +127,7 @@ def task_db_load_publisher(recs):
                     session.rollback()
                     session.flush()
         else:
-            logger.info("There were no XREF IDs to load!")
+            logger.info("There were no publishers to load!")
 
 
 @app.task(queue='load-datafiles')
@@ -185,7 +185,7 @@ def task_db_load_raster(recs):
                     session.rollback()
                     session.flush()
         else:
-            logger.info("There were no XREF IDs to load!")
+            logger.info("There were no raster configs to load!")
 
 
 

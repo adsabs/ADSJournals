@@ -4,6 +4,7 @@ import chardet
 import config
 from namedentities import named_entities, unicode_entities
 import os
+from glob import glob
 
 
 class ReadBibstemException(Exception):
@@ -13,12 +14,17 @@ class ReadBibstemException(Exception):
 class ReadCanonicalException(Exception):
     pass
 
+
+class ReadEncodingException(Exception):
+    pass
+
+
 def get_encoding(filename):
     try:
-        encoding = chardet.detect(open(infile, 'rb').read())['encoding']
+        encoding = chardet.detect(open(filename, 'rb').read())['encoding']
         return encoding
     except Exception as err:
-        return 'utf-8'
+        raise ReadEncodingException(err)
 
 
 def read_bibstems_list():
@@ -121,60 +127,81 @@ def read_complete_csvs():
     return data
 
 
+def parse_raster_volume_data(pubsoup):
+    volume_specific = pub.find_all('volumes')
+    volumes = []
+    if volume_specific:
+        for v in volume_specific:
+            vol_param = dict()
+            vol_range = dict()
+            for t in v.children:
+                if t.name:
+                    try:
+                        vol_param[t.name] = t.contents[0].strip()
+                        if not vol_param[t.name]:
+                            del vol_param[t.name]
+                    except Exception as err:
+                        pass
+                        # print(('volumening problem:', err))
+            if vol_param:
+                vol_range['range'] = v['range']
+                vol_range['param'] = vol_param
+                volumes.append(vol_range)
+
+    return volumes
+
+
+def parse_raster_pub_data(pubsoup):
+    global_param = dict()
+    for t in pubsoup.children:
+        if t.name:
+            try:
+                global_param[t.name] = t.contents[0].strip()
+                if not global_param[t.name]:
+                    del global_param[t.name]
+            except Exception as err:
+                if t.name == 'bibstem':
+                    global_param['bibstem'] = filestem
+
+    return global_param
+
+
 def read_raster_xml(masterdict):
     raster_dir = config.RASTER_CONFIG_DIR
+    xml_files = glob(raster_dir+"*.xml")
     recs = []
-    for bibstem, masterid in list(masterdict.items()):
-        raster_file = raster_dir + bibstem + '.xml'
-        if os.path.isfile(raster_file):
+    for raster_file in xml_files:
+        bibstem = raster_file.replace(raster_dir,'').replace('.xml','')
+        if bibstem in masterdict.keys():
+            masterid = masterdict[bibstem]
             try:
-                with open(raster_file, 'r') as fx:
+                with open(raster_file, 'r', encoding=get_encoding(raster_file)) as fx:
                     filestem = raster_file.split('/')[-1].rstrip('.xml')
                     data = fx.read().rstrip()
                     soup = bs(data, 'html5lib')
                     pub = soup.find('publication')
     
                     # get volume specific parameters
-                    volume_specific = pub.find_all('volumes')
-                    volumes = []
-                    if volume_specific:
-                        for v in volume_specific:
-                            vol_param = dict()
-                            vol_range = dict()
-                            for t in v.children:
-                                if t.name:
-                                    try:
-                                        vol_param[t.name] = t.contents[0].strip()
-                                        if not vol_param[t.name]:
-                                            del vol_param[t.name]
-                                    except Exception as err:
-                                        pass
-                                        # print(('volumening problem:', err))
-                            if vol_param:
-                                vol_range['range'] = v['range']
-                                vol_range['param'] = vol_param
-                                volumes.append(vol_range)
+                    volumes = list()
+                    try:
+                        volumes = parse_raster_volume_data(pub)
+                    except Exception as err:
+                        pass
     
                     # now make a dict of the general params
-                    global_param = dict()
-                    for t in pub.children:
-                        if t.name:
-                            try:
-                                global_param[t.name] = t.contents[0].strip()
-                                if not global_param[t.name]:
-                                    del global_param[t.name]
-                            except Exception as err:
-                                if t.name == 'bibstem':
-                                    global_param['bibstem'] = filestem
-                                # else:
-                                    # print "Error in %s: %s\t%s"%(filestem,t.name,err)
+                    try:
+                        global_param = parse_raster_pub_data(pub)
+                    except Exception as err:
+                        pass
+
+
                     try:
                         if volumes:
                             # add volume-specific params to dict as an array
                             global_param['rastervol'] = volumes
                     except Exception as err:
                         pass
-                    # print(('ERROR:', err))
+                        # print(('ERROR:', err))
                     recs.append((masterid,global_param))
             except Exception as err:
                 pass
