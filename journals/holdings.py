@@ -7,7 +7,7 @@ import config
 import journals.utils as utils
 
 
-class HoldingsQueryException(Exception)
+class HoldingsQueryException(Exception):
     pass
 
 
@@ -45,31 +45,30 @@ class Holdings(object):
             logger.warn('Bad type for bibstem: %s' % type(bibstem))
 
     def process_output(self):
-        if self.results:
-            holdings_list = dict()
-            bs = self.results['bibstem']
-            for paper in self.results['docs']:
-                try:
-                    vol = paper['volume']
-                    pg = paper['page'][0]
-                    yr = int(paper['year'])
+        holdings_list = dict()
+        try:
+            if self.results:
+                bs = self.results['bibstem']
+                for paper in self.results['docs']:
                     try:
-                        eso = self.convert_esources_to_int(paper['esources'])
+                        vol = paper['volume']
+                        pg = paper['page'][0]
+                        yr = int(paper['year'])
+                        try:
+                            eso = self.convert_esources_to_int(paper['esources'])
+                        except Exception as err:
+                            eso = 0
+                        outdict = {'page': pg, 'volume': vol, 'year': yr, 'esources': eso}
+                        if bs in holdings_list:
+                            holdings_list[bs].append(outdict)
+                        else:
+                            holdings_list[bs] = [outdict]
                     except Exception as err:
-                        eso = 0
-                    outdict = {'page': pg, 'volume': vol, 'year': yr, 'esources': eso}
-                    if bs in holdings_list:
-                        holdings_list[bs].append(outdict)
-                    else:
-                        holdings_list[bs] = [outdict]
-                except Exception as err:
-                    print('Holdings wut? %s' % err)
-                    pass
+                        print('Holdings wut? %s' % err)
+                        pass
         except Exception as err:
             logger.warn("Error in Holdings.process_output: %s" % err)
-            return {}
-        else:
-            return holdings_list
+        return holdings_list
 
     def convert_esources_to_int(self, esource_array):
         try:
