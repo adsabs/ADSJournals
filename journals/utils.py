@@ -4,6 +4,8 @@ import chardet
 import config
 from namedentities import named_entities, unicode_entities
 import os
+import requests
+import urllib3
 from glob import glob
 
 
@@ -17,6 +19,25 @@ class ReadCanonicalException(Exception):
 
 class ReadEncodingException(Exception):
     pass
+
+
+class RequestsException(Exception):
+    pass
+
+
+def return_query(url, method='get', data='', headers='', verify=False):
+    urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+    try:
+        if method.lower() == 'get':
+            rQuery = requests.get(url)
+        elif method.lower() == 'post':
+            rQuery = requests.post(url, data=data, headers=headers, verify=False)
+        if rQuery.status_code != 200:
+            raise RequestsException('Return code error: %s' % rQuery.status_code)
+        else:
+            return rQuery.json()
+    except Exception as err:
+        raise RequestsException('Error in return_query: %s' % err)
 
 
 def get_encoding(filename):
@@ -69,17 +90,17 @@ def read_abbreviations_list():
     return datadict
 
 
-def read_canonical_list():
-    bibc = []
-    infile = config.CANONICAL_BIB_FILE
-    try:
-        with open(infile, 'r', encoding=get_encoding(infile)) as f:
-            for l in f.readlines():
-                (bibcode, a, b, c) = l.rstrip().split('\t')
-                bibc.append(bibcode)
-    except Exception as err:
-        raise ReadCanonicalException(err)
-    return bibc
+# def read_canonical_list():
+#     bibc = []
+#     infile = config.JDB_DATA_DIR + config.CANONICAL_BIB_FILE
+#     try:
+#         with open(infile, 'rU') as f:
+#             for l in f.readlines():
+#                 (bibcode, a, b, c) = l.rstrip().split('\t')
+#                 bibc.append(bibcode)
+#     except Exception as err:
+#         raise ReadCanonicalException(err)
+#     return bibc
 
 
 def read_complete_csvs():

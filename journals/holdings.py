@@ -4,93 +4,66 @@ import os
 import json
 import requests
 import config
+import journals.utils as utils
+
+
+class HoldingsQueryException(Exception)
+    pass
 
 
 class Holdings(object):
 
     def __init__(self):
-        try:
-            config.API_KEY
-        except NameError as err:
-            config.API_KEY = 'dummy_token'
+        self.base_url = "http://localhost:9983/solr/collection1/"
+        self.query = "select?fq=bibstem:%s" \
+                     "&fl=year,volume,page,esources&cursorMark=%s" \
+                     "&rows=5000&sort=bibcode%20asc&wt=json"
+        self.results = {}
 
-        token = 'Bearer ' + config.API_KEY
-        self.nmax = 2000
-        self.header = {'Authorization': token}
-        self.base_url = "https://api.adsabs.harvard.edu/v1/search/query"
-
-    def fetch(self, bibstem, getyear):
+    def fetch(self, bibstem):
+        cursormark_token = '*'
+        last_token = ''
+        output_list = list()
 
         # make sure query params are URL encoded (esp. bibstems w/ampersand)
         if isinstance(bibstem, str):
             bibstem = requests.utils.quote(bibstem)
+            while cursormark_token != last_token:
+                query = self.query % (bibstem, cursormark_token)
+                q_url = self.base_url + query
+                resp = utils.return_query(q_url, method='get')
+                last_token = cursormark_token
+                try:
+                    cursormark_token = resp['nextCursorMark']
+                except Exception as err:
+                    raise HoldingsQueryException('Bad result from solr: %s' % err)
+                else:
+                    output_list.extend(resp['response']['docs'])
+            self.results = {'bibstem': bibstem, 'docs': output_list}
         else:
             # bibstem must be a string -- if it's not, just return
-            logger.warn("Holdings.fetch: Bad type for bibstem: %s" %
-                        type(bibstem))
-            return []
-        # getyear can be an integer (1994) or str ('1990-1994')
-        if isinstance(getyear, str):
-            getyear = requests.utils.quote(getyear)
-        try:
-            query = "?q=bibstem:" + bibstem + \
-                    "+year:" + str(getyear) + \
-                    "&fl=year,volume,page,esources&rows=" + str(self.nmax)
-            url = self.base_url + query
-            nstart = 0
-            total_results = 1
-            output_array = list()
-            while nstart < total_results:
-                qstart = url + "&start=" + str(nstart)
-                r = requests.get(qstart, headers=self.header)
-                query_data = r.json()
+            logger.warn('Bad type for bibstem: %s' % type(bibstem))
 
-                response_hdr = query_data['responseHeader']
-
-                response = query_data['response']
-                total_results = response['numFound']
-                docs = response['docs']
-                output_array = output_array + docs
-                nstart = nstart + self.nmax
-        except Exception as err:
-            logger.warn("Error in Holdings.fetch: %s" % err)
-            return []
-        else:
-            return output_array
-
-    def load_json(self, infile):
-        output_array = []
-        if os.path.exists(infile):
-            with open(infile, 'rU') as fhold:
-                json_data = json.load(fhold)
-                if json_data['responseHeader']['status'] == 0:
-                    output_array = json_data['response']['docs']
-                else:
-                    logger.warn("problem loading json: %s " %
-                                json_data['responseHeader'])
-        else:
-            logger.warn("Json does not exist: %s" % infile)
-        return output_array
-
-    def process_output(self, output_array):
-        try:
+    def process_output(self):
+        if self.results:
             holdings_list = dict()
-            for paper in output_array:
+            bs = self.results['bibstem']
+            for paper in self.results['docs']:
                 try:
                     vol = paper['volume']
                     pg = paper['page'][0]
-                    bs = paper['bibstem'][0]
                     yr = int(paper['year'])
                     try:
                         eso = self.convert_esources_to_int(paper['esources'])
                     except Exception as err:
                         eso = 0
-                    outdict = {'page': pg, 'year': yr, 'esources': eso}
+                    outdict = {'page': pg, 'volume': vol, 'year': yr, 'esources': eso}
                     if bs in holdings_list:
                         holdings_list[bs].append(outdict)
                     else:
                         holdings_list[bs] = [outdict]
                 except Exception as err:
+                    print('Holdings wut? %s' % err)
                     pass
         except Exception as err:
             logger.warn("Error in Holdings.process_output: %s" % err)
