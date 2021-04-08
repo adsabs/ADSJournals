@@ -204,11 +204,11 @@ def task_db_get_bibstem_masterid():
 
 
 @app.task(queue='load-holdings')
-def task_db_load_holdings(recs, infile):
+def task_db_load_holdings(recs):
     with app.session_scope() as session:
         if recs:
             hold = holdings.Holdings()
-            output = hold.load_json(infile)
+            output = hold.fetch('PASP')
             h_out = hold.process_output(output)
             for bibstem, masterid in list(recs.items()):
                 bibstem = str(bibstem)
@@ -225,7 +225,8 @@ def task_db_load_holdings(recs, infile):
                             session.rollback()
                             session.commit()
                 except Exception as e:
-                    logger.warn("Bibstem does not exist: %s", bibstem)
+                    # logger.warn("Bibstem does not exist: %s", bibstem)
+                    pass
         else:
             logger.error("No holdings data to load!")
     return
