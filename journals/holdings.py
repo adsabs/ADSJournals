@@ -3,8 +3,13 @@ from builtins import object
 import os
 import json
 import requests
-import config
 import journals.utils as utils
+from adsputils import load_config
+
+proj_home = os.path.realpath(os.path.dirname(__file__)) + '/../'
+config = load_config(proj_home=proj_home)
+INDEXER_HOST = config.get('_INDEXER_HOST','localhost')
+INDEXER_PORT = config.get('_INDEXER_PORT','9983')
 
 
 class HoldingsQueryException(Exception):
@@ -14,10 +19,10 @@ class HoldingsQueryException(Exception):
 class Holdings(object):
 
     def __init__(self):
-        self.base_url = "http://localhost:9983/solr/collection1/"
-        self.query = "select?fq=bibstem:%s" \
-                     "&fl=year,volume,page,esources&cursorMark=%s" \
-                     "&rows=5000&sort=bibcode%20asc&wt=json"
+        self.base_url = 'http://%s:%s/solr/collection1/' % (INDEXER_HOST,INDEXER_PORT)
+        self.query = 'select?fq=bibstem:%s' \
+                     '&fl=year,volume,page,esources&cursorMark=%s' \
+                     '&rows=5000&sort=bibcode%20asc&wt=json'
         self.results = {}
 
     def fetch(self, bibstem):
@@ -58,17 +63,17 @@ class Holdings(object):
                             eso = self.convert_esources_to_int(paper['esources'])
                         except Exception as err:
                             eso = 0
-                        outdict = {'page': pg, 'volume': vol, 'year': yr, 'esources': eso}
-                        if bs in holdings_list:
-                            holdings_list[bs].append(outdict)
+                        outdict = {'page': pg, 'year': yr, 'esources': eso}
+                        if vol in holdings_list:
+                            holdings_list[vol].append(outdict)
                         else:
-                            holdings_list[bs] = [outdict]
+                            holdings_list[vol] = [outdict]
                     except Exception as err:
                         print('Holdings wut? %s' % err)
                         pass
         except Exception as err:
             logger.warn("Error in Holdings.process_output: %s" % err)
-        return holdings_list
+        return {'bibstem':bs, 'volumes_list': holdings_list}
 
     def convert_esources_to_int(self, esource_array):
         try:

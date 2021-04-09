@@ -1,5 +1,6 @@
 from __future__ import absolute_import, unicode_literals
 from builtins import str
+import json
 import os
 from kombu import Queue
 from journals import app as app_module
@@ -154,7 +155,7 @@ def task_db_load_raster(recs):
                 if 'width' in r[1]:
                     width = r[1]['width']
                 else:
-                    width = '' 
+                    width = ''
                 if 'height' in r[1]:
                     height = r[1]['height']
                 else:
@@ -209,15 +210,15 @@ def task_db_load_holdings(recs):
         if recs:
             hold = holdings.Holdings()
             output = hold.fetch('PASP')
-            h_out = hold.process_output(output)
+            h_out = json.loads(hold.process_output())
             for bibstem, masterid in list(recs.items()):
                 bibstem = str(bibstem)
                 try:
-                    h_data = h_out[bibstem]
-                    for d in h_data:
+                    if bibstem == h_out['bibstem']:
+                        h_data = json.dumps(h_out['volumes_list'])
                         try:
                             session.add(JournalsHoldings(masterid=masterid,
-                                                         volumes_list=d))
+                                                         volumes_list=h_data))
                             session.commit()
                         except Exception as e:
                             logger.warn("Error adding holdings for %s: %s" %

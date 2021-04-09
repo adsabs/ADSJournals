@@ -7,7 +7,7 @@ LOG_STDOUT = True
 COLLECTIONS = ['ast', 'phy', 'gen']
 
 # DATA_DIRECTORY:
-JDB_DATA_DIR = '/proj/ads_abstracts/config/journalsdb/PIPELINE/data/'
+JDB_DATA_DIR = '/proj/ads/abstracts/config/journalsdb/PIPELINE/data/'
 
 # BIBSTEMS has bibstem, R/J/C/etc, and canonical name
 BIBSTEMS_FILE = JDB_DATA_DIR + 'bibstems.dat'
@@ -29,4 +29,4 @@ ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
                 'ADS_SCAN', 'ADS_PDF']
 
 # REFSOURCE_FILE
-BIB_TO_REFERENCES_FILE = '/proj/ads_references/links/citing2file.dat'
+BIB_TO_REFERENCES_FILE = '/proj/ads/references/links/citing2file.dat'
