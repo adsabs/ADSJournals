@@ -38,7 +38,7 @@ def get_arguments():
     parser.add_argument('-ch',
                         '--calculate-holdings',
                         dest='calc_holdings',
-                        action='store',
+                        action='store_true',
                         help='Populate holdings from Solr data')
 
     parser.add_argument('-ca',
@@ -164,12 +164,12 @@ def load_completeness(masterdict):
     return
 
 
-def calc_holdings(masterdict, json_file):
+def calc_holdings(masterdict):
     '''
     No.
     '''
     try:
-        tasks.task_db_load_holdings(masterdict, json_file)
+        tasks.task_db_load_holdings(masterdict)
     except Exception as err:
         logger.warn("Failed to load holdings: %s", err)
     return
@@ -208,7 +208,7 @@ def main():
 
         if args.calc_holdings:
             # holdings: be aware this is a big Solr query
-            calc_holdings(masterdict, args.calc_holdings)
+            calc_holdings(masterdict)
 
         if args.load_raster:
             load_rasterconfig(masterdict)
