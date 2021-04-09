@@ -20,7 +20,6 @@ class DBReadException(Exception):
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 
-
 app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globals().get('config', {}), local_config=globals().get('local_config', {}))
 logger = app.logger
 
@@ -209,11 +208,11 @@ def task_db_load_holdings(recs):
     with app.session_scope() as session:
         if recs:
             hold = holdings.Holdings()
-            output = hold.fetch('PASP')
-            h_out = json.loads(hold.process_output())
             for bibstem, masterid in list(recs.items()):
                 bibstem = str(bibstem)
                 try:
+                    output = hold.fetch(bibstem)
+                    h_out = hold.process_output()
                     if bibstem == h_out['bibstem']:
                         h_data = json.dumps(h_out['volumes_list'])
                         try:
@@ -226,8 +225,7 @@ def task_db_load_holdings(recs):
                             session.rollback()
                             session.commit()
                 except Exception as e:
-                    # logger.warn("Bibstem does not exist: %s", bibstem)
-                    pass
+                    logger.info("No holdings for bibstem: %s", bibstem)
         else:
             logger.error("No holdings data to load!")
     return

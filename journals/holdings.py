@@ -20,9 +20,9 @@ class Holdings(object):
 
     def __init__(self):
         self.base_url = 'http://%s:%s/solr/collection1/' % (INDEXER_HOST,INDEXER_PORT)
-        self.query = 'select?fq=bibstem:%s' \
-                     '&fl=year,volume,page,esources&cursorMark=%s' \
-                     '&rows=5000&sort=bibcode%20asc&wt=json'
+        self.query = ['select?fq=bibstem:',
+                     '&fl=year,volume,page,esources&cursorMark=',
+                     '&q=*%3A*&rows=5000&sort=bibcode%20asc%2Cid%20asc&wt=json']
         self.results = {}
 
     def fetch(self, bibstem):
@@ -34,7 +34,8 @@ class Holdings(object):
         if isinstance(bibstem, str):
             bibstem = requests.utils.quote(bibstem)
             while cursormark_token != last_token:
-                query = self.query % (bibstem, cursormark_token)
+                q_arr = self.query
+                query = q_arr[0] + bibstem + q_arr[1] + cursormark_token + q_arr[2]
                 q_url = self.base_url + query
                 resp = utils.return_query(q_url, method='get')
                 last_token = cursormark_token
@@ -69,8 +70,7 @@ class Holdings(object):
                         else:
                             holdings_list[vol] = [outdict]
                     except Exception as err:
-                        print('Holdings wut? %s' % err)
-                        pass
+                        logger.debug("Invalid record in holdings search: %s" % paper)
         except Exception as err:
             logger.warn("Error in Holdings.process_output: %s" % err)
         return {'bibstem':bs, 'volumes_list': holdings_list}
@@ -78,7 +78,8 @@ class Holdings(object):
     def convert_esources_to_int(self, esource_array):
         try:
             bin_int_string = ''
-            for p in config.ESOURCE_LIST:
+            ESOURCE_LIST = config.get('ESOURCE_LIST', [])
+            for p in ESOURCE_LIST:
                 if p in esource_array:
                     bin_int_string = bin_int_string + '1'
                 else:
