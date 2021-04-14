@@ -213,11 +213,15 @@ def task_db_load_holdings(recs):
                 try:
                     output = hold.fetch(bibstem)
                     h_out = hold.process_output()
-                    if bibstem == h_out['bibstem']:
-                        h_data = json.dumps(h_out['volumes_list'])
+                    for rec in h_out:
+                        if bibstem == rec['bibstem']:
+                            rec_data = json.dumps(rec['holdings_list'])
+                            rec_vol = rec['volume']
+                            
                         try:
                             session.add(JournalsHoldings(masterid=masterid,
-                                                         volumes_list=h_data))
+                                                         volume=rec_vol,
+                                                         volumes_list=rec_data))
                             session.commit()
                         except Exception as e:
                             logger.warn("Error adding holdings for %s: %s" %
