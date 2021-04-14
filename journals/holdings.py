@@ -64,7 +64,7 @@ class Holdings(object):
                             eso = self.convert_esources_to_int(paper['esources'])
                         except Exception as err:
                             eso = 0
-                        outdict = {'page': pg, 'year': yr, 'esources': eso}
+                        outdict = {'page': pg, 'esources': eso}
                         if vol in holdings_list:
                             holdings_list[vol].append(outdict)
                         else:
@@ -73,7 +73,17 @@ class Holdings(object):
                         logger.debug("Invalid record in holdings search: %s" % paper)
         except Exception as err:
             logger.warn("Error in Holdings.process_output: %s" % err)
-        return {'bibstem':bs, 'volumes_list': holdings_list}
+        holdings_all = list()
+        for k, v in holdings_list.items():
+            volume = k
+            bibstem = v['bibstem']
+            vol_list = v['holdings_list']
+            outrec = {'bibstem': bibstem, 'volume': volume, 'holdings': vol_list}
+            holdings_all.append(outrec)
+            
+            
+            
+        return holdings_all
 
     def convert_esources_to_int(self, esource_array):
         try:

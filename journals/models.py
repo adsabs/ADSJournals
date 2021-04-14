@@ -242,6 +242,7 @@ class JournalsHoldings(Base):
                         unique=True, nullable=False)
     masterid = Column(Integer, ForeignKey('master.masterid'),
                       primary_key=True, nullable=False)
+    volume = Column(String)
     volumes_list = Column(Text)
     complete = Column(Boolean, default=False)
     updated = Column(UTCDateTime, onupdate=get_date)

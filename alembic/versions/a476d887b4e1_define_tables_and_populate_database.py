@@ -214,6 +214,7 @@ def upgrade():
                     sa.Column('holdingsid', sa.Integer(), autoincrement=True,
                               nullable=False),
                     sa.Column('masterid', sa.Integer(), nullable=False),
+                    sa.Column('volume', sa.String(), nullable=True),
                     sa.Column('volumes_list', sa.Text(), nullable=True),
                     sa.Column('complete', sa.Boolean(), nullable=True),
                     sa.Column('updated', sa.TIMESTAMP(), nullable=True),
