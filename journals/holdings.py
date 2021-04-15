@@ -48,7 +48,8 @@ class Holdings(object):
             self.results = {'bibstem': bibstem, 'docs': output_list}
         else:
             # bibstem must be a string -- if it's not, just return
-            logger.warn('Bad type for bibstem: %s' % type(bibstem))
+            # logger.warn('Bad type for bibstem: %s' % type(bibstem))
+            pass
 
     def process_output(self):
         holdings_list = dict()
@@ -70,19 +71,21 @@ class Holdings(object):
                         else:
                             holdings_list[vol] = [outdict]
                     except Exception as err:
-                        logger.debug("Invalid record in holdings search: %s" % paper)
+                        # logger.debug("Invalid record in holdings search: %s" % paper)
+                        pass
         except Exception as err:
-            logger.warn("Error in Holdings.process_output: %s" % err)
+            # logger.warning("Error in Holdings.process_output: %s" % err)
+            pass
         holdings_all = list()
         for k, v in holdings_list.items():
             volume = k
-            bibstem = v['bibstem']
-            vol_list = v['holdings_list']
+            bibstem = bs
+            vol_list = v
             outrec = {'bibstem': bibstem, 'volume': volume, 'holdings': vol_list}
             holdings_all.append(outrec)
-            
-            
-            
+
+
+
         return holdings_all
 
     def convert_esources_to_int(self, esource_array):

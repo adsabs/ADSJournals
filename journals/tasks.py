@@ -167,7 +167,7 @@ def task_db_load_raster(recs):
                     options = 'oops'
                 else:
                     options = ''
-                    
+
                 try:
                     session.add(JournalsRaster(masterid=r[0],
                                                copyrt_file=copyrt_file,
@@ -210,26 +210,26 @@ def task_db_load_holdings(recs):
             hold = holdings.Holdings()
             for bibstem, masterid in list(recs.items()):
                 bibstem = str(bibstem)
+                logger.debug("Loading holdings for bibstem: %s" % bibstem)
                 try:
                     output = hold.fetch(bibstem)
                     h_out = hold.process_output()
                     for rec in h_out:
-                        if bibstem == rec['bibstem']:
-                            rec_data = json.dumps(rec['holdings_list'])
-                            rec_vol = rec['volume']
-                            
                         try:
+                            rec_data = json.dumps(rec['holdings'])
+                            rec_vol = rec['volume']
                             session.add(JournalsHoldings(masterid=masterid,
                                                          volume=rec_vol,
                                                          volumes_list=rec_data))
                             session.commit()
                         except Exception as e:
-                            logger.warn("Error adding holdings for %s: %s" %
+                            logger.warning("Error adding holdings for %s: %s" %
                                         (bibstem, e))
                             session.rollback()
                             session.commit()
                 except Exception as e:
-                    logger.info("No holdings for bibstem: %s", bibstem)
+                    logger.debug("Error loading holdings: %s", e)
+                    logger.debug("No holdings for bibstem: %s", bibstem)
         else:
             logger.error("No holdings data to load!")
     return
