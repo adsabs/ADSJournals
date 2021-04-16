@@ -4,15 +4,23 @@ import os
 import json
 import requests
 import journals.utils as utils
+from journals import app as app_module
 from adsputils import load_config
 
 proj_home = os.path.realpath(os.path.dirname(__file__)) + '/../'
 config = load_config(proj_home=proj_home)
+app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globals().get('config', {}), local_config=globals().get('local_config', {}))
+logger = app.logger
+
 INDEXER_HOST = config.get('_INDEXER_HOST','localhost')
 INDEXER_PORT = config.get('_INDEXER_PORT','9983')
 
 
 class HoldingsQueryException(Exception):
+    pass
+
+
+class BadBibstemException(Exception):
     pass
 
 
@@ -47,9 +55,8 @@ class Holdings(object):
                     output_list.extend(resp['response']['docs'])
             self.results = {'bibstem': bibstem, 'docs': output_list}
         else:
-            # bibstem must be a string -- if it's not, just return
-            # logger.warn('Bad type for bibstem: %s' % type(bibstem))
-            pass
+            # bibstem must be a string
+            raise BadBibstemException('Bad type for bibstem: %s' % type(bibstem))
 
     def process_output(self):
         holdings_list = dict()
@@ -63,19 +70,17 @@ class Holdings(object):
                         yr = int(paper['year'])
                         try:
                             eso = self.convert_esources_to_int(paper['esources'])
-                        except Exception as err:
+                        except Exception as pass_err:
                             eso = 0
                         outdict = {'page': pg, 'esources': eso}
                         if vol in holdings_list:
                             holdings_list[vol].append(outdict)
                         else:
                             holdings_list[vol] = [outdict]
-                    except Exception as err:
-                        # logger.debug("Invalid record in holdings search: %s" % paper)
-                        pass
+                    except Exception as pass_err:
+                        logger.debug("Invalid record in holdings search: %s, %s" % (bs,paper))
         except Exception as err:
-            # logger.warning("Error in Holdings.process_output: %s" % err)
-            pass
+            logger.warning("Error in Holdings.process_output: %s" % err)
         holdings_all = list()
         for k, v in holdings_list.items():
             volume = k
@@ -83,8 +88,6 @@ class Holdings(object):
             vol_list = v
             outrec = {'bibstem': bibstem, 'volume': volume, 'holdings': vol_list}
             holdings_all.append(outrec)
-
-
 
         return holdings_all
 
@@ -99,6 +102,6 @@ class Holdings(object):
                     bin_int_string = bin_int_string + '0'
             bin_int_string = '0b' + bin_int_string
             esources_out = int(bin_int_string, 2)
-        except Exception as err:
+        except Exception as pass_err:
             esources_out = 0
         return esources_out

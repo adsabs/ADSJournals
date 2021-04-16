@@ -204,32 +204,31 @@ def task_db_get_bibstem_masterid():
 
 
 @app.task(queue='load-holdings')
-def task_db_load_holdings(recs):
+def task_db_load_holdings(bibstem, masterid):
     with app.session_scope() as session:
-        if recs:
+        if masterid:
             hold = holdings.Holdings()
-            for bibstem, masterid in list(recs.items()):
-                bibstem = str(bibstem)
-                logger.debug("Loading holdings for bibstem: %s" % bibstem)
-                try:
-                    output = hold.fetch(bibstem)
-                    h_out = hold.process_output()
-                    for rec in h_out:
-                        try:
-                            rec_data = json.dumps(rec['holdings'])
-                            rec_vol = rec['volume']
-                            session.add(JournalsHoldings(masterid=masterid,
-                                                         volume=rec_vol,
-                                                         volumes_list=rec_data))
-                            session.commit()
-                        except Exception as e:
-                            logger.warning("Error adding holdings for %s: %s" %
-                                        (bibstem, e))
-                            session.rollback()
-                            session.commit()
-                except Exception as e:
-                    logger.debug("Error loading holdings: %s", e)
-                    logger.debug("No holdings for bibstem: %s", bibstem)
+            bibstem = str(bibstem)
+            logger.debug("Loading holdings for bibstem: %s" % bibstem)
+            try:
+                output = hold.fetch(bibstem)
+                h_out = hold.process_output()
+                for rec in h_out:
+                    try:
+                        rec_data = json.dumps(rec['holdings'])
+                        rec_vol = rec['volume']
+                        session.add(JournalsHoldings(masterid=masterid,
+                                                     volume=rec_vol,
+                                                     volumes_list=rec_data))
+                        session.commit()
+                    except Exception as e:
+                        logger.warning("Error adding holdings for %s: %s" %
+                                    (bibstem, e))
+                        session.rollback()
+                        session.commit()
+            except Exception as e:
+                logger.debug("Error loading holdings: %s", e)
+                logger.debug("No holdings for bibstem: %s", bibstem)
         else:
             logger.error("No holdings data to load!")
     return
