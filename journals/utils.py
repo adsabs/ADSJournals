@@ -25,6 +25,31 @@ class RequestsException(Exception):
     pass
 
 
+class ReadRefsourcesException(Exception):
+    pass
+
+
+def parse_bibcodes(bibcode):
+    parsed_bib = {}
+    if not isinstance(bibcode, str):
+        pass
+    else:
+        try:
+            year = bibcode[0:4]
+            stem = bibcode[4:9]
+            volm = bibcode[9:13]
+            qual = bibcode[13]
+            page = bibcode[14:18]
+            auth = bibcode[18]
+            parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
+                          "volume": volm, "qualifier": qual, "page": page,
+                          "initial": auth}
+        except Exception as err:
+            # logger.warn("Nonstandard bibcode: {0}".format(bibcode))
+            pass
+    return parsed_bib
+
+
 def return_query(url, method='get', data='', headers='', verify=False):
     urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
     try:
@@ -229,22 +254,42 @@ def read_raster_xml(masterdict):
     return recs
 
 
-def parse_bibcodes(bibcode):
-    parsed_bib = {}
-    if not isinstance(bibcode, str):
-        pass
-    else:
-        try:
-            year = bibcode[0:4]
-            stem = bibcode[4:9]
-            volm = bibcode[9:13]
-            qual = bibcode[13]
-            page = bibcode[14:18]
-            auth = bibcode[18]
-            parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
-                          "volume": volm, "qualifier": qual, "page": page,
-                          "initial": auth}
-        except Exception as err:
-            # logger.warn("Nonstandard bibcode: {0}".format(bibcode))
-            pass
-    return parsed_bib
+def read_refsource(masterdict):
+    refsource_file = config.BIB_TO_REFERENCES_FILE
+    recs_dict = {}
+    try:
+        with open(refsource_file, 'r', encoding=get_encoding(refsource_file)) as fr:
+            for l in fr.readlines():
+                 try:
+                     (bibcode,srcfile) = l.strip().split('\t')
+                     bib_parsed = parse_bibcodes(bibcode)
+                     src = srcfile.split('/')
+                     if src[0] == 'AUTHOR' or src[0] == 'OTHER':
+                         s = src[0]
+                     elif '.isi.pairs' in src[-1]:
+                         s = 'ISI'
+                     elif '.xref.' in src[-1]:
+                         s = 'CROSSREF'
+                     elif '.ocr.' in src[-1]:
+                         s = 'OCR'
+                     else:
+                         s = 'PUBLISHER'
+                 except Exception as err:
+                     pass
+                 else:
+                     b = bib_parsed['bibstem'].lstrip('.').rstrip('.')
+                     v = bib_parsed['volume'].lstrip('.').rstrip('.')
+                     if recs_dict[b]:
+                         if recs_dict[b][v]:
+                             if recs_dict[b][v][s]:
+                                 recs_dict[b][v][s] += 1
+                             else:
+                                 recs_dict[b][v].update({s: 1})
+                         else:
+                             recs_dict[b].update({v: {s: 1}})
+                     else:
+                        recs_dict.update({b: {v: {s: 1}}})
+    except Exception as err:
+        raise ReadRefsourcesException(err)
+    return recs_dict
+
