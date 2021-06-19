@@ -7,6 +7,7 @@ from journals import app as app_module
 from journals.models import *
 #import journals.utils as utils
 import journals.holdings as holdings
+import journals.refsource as refsource
 
 
 class DBCommitException(Exception):
@@ -231,4 +232,23 @@ def task_db_load_holdings(bibstem, masterid):
                 logger.debug("No holdings for bibstem: %s", bibstem)
         else:
             logger.error("No holdings data to load!")
+    return
+
+
+@app.task(queue='load-refsources')
+def task_db_load_refsource(masterid, refsource):
+    with app.session_scope() as session:
+        if masterid and refsource:
+            try:
+                refsource = json.dumps(refsource.toJSON())
+                session.add(JournalsRefSource(masterid=masterid,
+                                              refsource_list=refsource))
+                session.commit()
+            except Exception as e:
+                logger.warning("Error adding holdings for %s: %s" %
+                               (masterid, e))
+                session.rollback()
+                session.commit()
+        else:
+            logger.error("No refsource data to load!")
     return

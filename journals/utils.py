@@ -1,12 +1,16 @@
 from __future__ import print_function
-from bs4 import BeautifulSoup as bs
 import chardet
-import config
-from namedentities import named_entities, unicode_entities
 import os
 import requests
+import string
 import urllib3
+from adsputils import load_config
+from bs4 import BeautifulSoup as bs
 from glob import glob
+from journals.refsource import RefCount, RefVolume, RefSource
+
+proj_home = os.path.realpath(os.path.dirname(__file__)+ '/../')
+config = load_config(proj_home=proj_home)
 
 
 class ReadBibstemException(Exception):
@@ -23,6 +27,34 @@ class ReadEncodingException(Exception):
 
 class RequestsException(Exception):
     pass
+
+
+class ReadRefsourcesException(Exception):
+    pass
+
+
+def parse_bibcodes(bibcode):
+    parsed_bib = {}
+    if not isinstance(bibcode, str):
+        pass
+    else:
+        try:
+            year = bibcode[0:4]
+            stem = bibcode[4:9]
+            volm = bibcode[9:13]
+            qual = bibcode[13]
+            page = bibcode[14:18]
+            auth = bibcode[18]
+            if volm in config.get('BIBSTEM_VOLUMES'):
+                stem = year + stem + volm
+                volm = None
+            parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
+                          "volume": volm, "qualifier": qual, "page": page,
+                          "initial": auth}
+        except Exception as err:
+            # logger.warn("Nonstandard bibcode: {0}".format(bibcode))
+            pass
+    return parsed_bib
 
 
 def return_query(url, method='get', data='', headers='', verify=False):
@@ -50,7 +82,7 @@ def get_encoding(filename):
 
 def read_bibstems_list():
     data = {}
-    infile = config.BIBSTEMS_FILE
+    infile = config.get('BIBSTEMS_FILE')
     try:
         with open(infile, 'r', encoding=get_encoding(infile)) as f:
             nbibstem = f.readline()
@@ -69,7 +101,7 @@ def read_bibstems_list():
 
 def read_abbreviations_list():
     datadict = {}
-    infile = config.JOURNAL_ABBREV_FILE
+    infile = config.get('JOURNAL_ABBREV_FILE')
     try:
         with open(infile, 'r', encoding=get_encoding(infile)) as f:
             for l in f.readlines():
@@ -90,23 +122,10 @@ def read_abbreviations_list():
     return datadict
 
 
-# def read_canonical_list():
-#     bibc = []
-#     infile = config.JDB_DATA_DIR + config.CANONICAL_BIB_FILE
-#     try:
-#         with open(infile, 'rU') as f:
-#             for l in f.readlines():
-#                 (bibcode, a, b, c) = l.rstrip().split('\t')
-#                 bibc.append(bibcode)
-#     except Exception as err:
-#         raise ReadCanonicalException(err)
-#     return bibc
-
-
 def read_complete_csvs():
     data = {}
-    for coll in config.COLLECTIONS:
-        infile = config.JDB_DATA_DIR + 'completion.' + coll + '.csv'
+    for coll in config.get('COLLECTIONS'):
+        infile = config.get('JDB_DATA_DIR') + 'completion.' + coll + '.csv'
         try:
             with open(infile, 'r', encoding=get_encoding(infile)) as f:
                 f.readline()
@@ -188,7 +207,7 @@ def parse_raster_pub_data(pubsoup):
 
 
 def read_raster_xml(masterdict):
-    raster_dir = config.RASTER_CONFIG_DIR
+    raster_dir = config.get('RASTER_CONFIG_DIR')
     xml_files = glob(raster_dir+"*.xml")
     recs = []
     for raster_file in xml_files:
@@ -215,36 +234,96 @@ def read_raster_xml(masterdict):
                     except Exception as err:
                         pass
 
-
+                    # add volume-specific params to dict as an array
                     try:
                         if volumes:
-                            # add volume-specific params to dict as an array
                             global_param['rastervol'] = volumes
                     except Exception as err:
                         pass
-                        # print(('ERROR:', err))
+
                     recs.append((masterid,global_param))
+
             except Exception as err:
                 pass
+
     return recs
 
+def parse_refsource_str(srcstr):
+    try:
+        src = srcstr.split('/')
+        if src[0] == 'AUTHOR' or src[0] == 'OTHER':
+            s = src[0]
+        elif '.isi.pairs' in src[-1]:
+            s = 'ISI'
+        elif '.xref.' in src[-1]:
+            s = 'CROSSREF'
+        elif '.ocr.' in src[-1]:
+            s = 'OCR'
+        else:
+            s = 'PUBLISHER'
+        return s
+    except Exception as err:
+        print('Error in parse_refsource_str: %s' % err)
+        return
 
-def parse_bibcodes(bibcode):
-    parsed_bib = {}
-    if not isinstance(bibcode, str):
-        pass
+def update_refsources(refsources, bibstem, year, volume, source):
+    try:
+        rs = refsources[bibstem]
+    except Exception as noop:
+        try:
+            rs = RefSource(bibstem=bibstem, volume=volume, year=year, source=source)
+        except Exception as err:
+            print('create new failed: %s' % err)
+        else:
+            refsources[bibstem] = rs
     else:
         try:
-            year = bibcode[0:4]
-            stem = bibcode[4:9]
-            volm = bibcode[9:13]
-            qual = bibcode[13]
-            page = bibcode[14:18]
-            auth = bibcode[18]
-            parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
-                          "volume": volm, "qualifier": qual, "page": page,
-                          "initial": auth}
+            rs.increment_source(volume, year, source)
+            refsources[bibstem] = rs
         except Exception as err:
-            # logger.warn("Nonstandard bibcode: {0}".format(bibcode))
-            pass
-    return parsed_bib
+            print('update existing failed: %s' % err)
+    return refsources
+
+def create_refsource():
+    '''
+    Takes the input file from classic and outputs a json object
+    containing source counts for each bibstem/volume pair.
+    The JSON format is:
+    {'bibstem': bibstem,
+     'volumes': [
+                 {
+                  'volume': volume,
+                  'year': year,
+                  'refsources': {
+                                 'source': source,
+                                 'count': count
+                                }
+                 }
+                ]
+    }
+
+    Depending on your needs, you can write the entire JSON object
+    to database, or make each bibstem a row, or make each bibstem /
+    volume pair a row.
+    '''
+    refsources = {}
+    infile = config.get('BIB_TO_REFS_FILE')
+    with open(infile, 'r') as fin:
+        for l in fin.readlines():
+            try:
+                (bibcode, srcfile) = l.strip().split('\t')
+            except Exception as err:
+                pass
+                # print('Malformed line in source file: "%s"' % l.strip())
+            else:
+                try:
+                    parsed_bib = parse_bibcodes(bibcode)
+                    year = parsed_bib['year']
+                    bibstem = parsed_bib['bibstem']
+                    volume = parsed_bib['volume']
+                    source = parse_refsource_str(srcfile)
+                    refsources = update_refsources(refsources, bibstem, year, volume, source)
+                except Exception as err:
+                    pass
+                    # print('failed update_refsources: %s' % err)
+    return refsources
