@@ -30,3 +30,5 @@ ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
 
 # REFSOURCE_FILE
 BIB_TO_REFERENCES_FILE = '/proj/ads/references/links/citing2file.dat'
+
+BIBSTEMS_NONNUMERIC = ['book', 'conf', 'work', 'rept', 'symp']

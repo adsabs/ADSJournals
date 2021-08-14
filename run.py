@@ -53,6 +53,12 @@ def get_arguments():
                         action='store_true',
                         help='Load rasterization control parameters')
 
+    parser.add_argument('-ls',
+                        '--load-refsources',
+                        dest='load_refsources',
+                        action='store_true',
+                        help='Load refsources from citing2file.dat')
+
     args = parser.parse_args()
     return args
 
@@ -175,6 +181,19 @@ def calc_holdings(masterdict):
             logger.warn("Failed to load holdings for bibstem (%s): %s" % (bibstem, err))
     return
 
+def load_refsources(masterdict):
+    print('lol.')
+    refsources = utils.create_refsource(config.get('LOLWUT'))
+    if refsources:
+        for bibstem, refsource in refsources.items():
+            if bibstem in masterdict.keys():
+                masterid = masterdict[bibstem]
+                tasks.task_db_load_refsource(masterid,refsource)
+            else:
+                print('missing masterdict bibstem: ',bibstem)
+    return
+    
+
 
 def main():
     '''
@@ -213,6 +232,9 @@ def main():
 
         if args.load_raster:
             load_rasterconfig(masterdict)
+
+        if args.load_refsources:
+            load_refsources(masterdict)
 
 
 if __name__ == '__main__':
