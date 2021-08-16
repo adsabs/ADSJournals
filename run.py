@@ -177,7 +177,7 @@ def calc_holdings(masterdict):
     '''
     for bibstem, masterid in list(masterdict.items()):
         try:
-            tasks.task_db_load_holdings.delay(bibstem, masterid)
+            tasks.task_db_load_holdings(bibstem, masterid)
         except Exception as err:
             logger.warn("Failed to load holdings for bibstem (%s): %s" % (bibstem, err))
     return
