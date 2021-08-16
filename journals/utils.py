@@ -1,13 +1,17 @@
 from __future__ import print_function
 import chardet
-import config
+# import config
 import os
 import requests
 import string
 import urllib3
+from adsputils import load_config
 from bs4 import BeautifulSoup as bs
 from glob import glob
-from refsource import RefCount, RefVolume, RefSource
+from journals.refsource import RefCount, RefVolume, RefSource
+
+proj_home = os.path.realpath(os.path.dirname(__file__)+ '/../')
+config = load_config(proj_home=proj_home)
 
 
 class ReadBibstemException(Exception):
@@ -42,6 +46,9 @@ def parse_bibcodes(bibcode):
             qual = bibcode[13]
             page = bibcode[14:18]
             auth = bibcode[18]
+            if volm in config.get('BIBSTEM_VOLUMES'):
+                stem = stem + volm
+                volm = None
             parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
                           "volume": volm, "qualifier": qual, "page": page,
                           "initial": auth}
@@ -76,7 +83,7 @@ def get_encoding(filename):
 
 def read_bibstems_list():
     data = {}
-    infile = config.BIBSTEMS_FILE
+    infile = config.get('BIBSTEMS_FILE')
     try:
         with open(infile, 'r', encoding=get_encoding(infile)) as f:
             nbibstem = f.readline()
@@ -95,7 +102,7 @@ def read_bibstems_list():
 
 def read_abbreviations_list():
     datadict = {}
-    infile = config.JOURNAL_ABBREV_FILE
+    infile = config.get('JOURNAL_ABBREV_FILE')
     try:
         with open(infile, 'r', encoding=get_encoding(infile)) as f:
             for l in f.readlines():
@@ -118,8 +125,8 @@ def read_abbreviations_list():
 
 def read_complete_csvs():
     data = {}
-    for coll in config.COLLECTIONS:
-        infile = config.JDB_DATA_DIR + 'completion.' + coll + '.csv'
+    for coll in config.get('COLLECTIONS'):
+        infile = config.get('JDB_DATA_DIR') + 'completion.' + coll + '.csv'
         try:
             with open(infile, 'r', encoding=get_encoding(infile)) as f:
                 f.readline()
@@ -201,7 +208,7 @@ def parse_raster_pub_data(pubsoup):
 
 
 def read_raster_xml(masterdict):
-    raster_dir = config.RASTER_CONFIG_DIR
+    raster_dir = config.get('RASTER_CONFIG_DIR')
     xml_files = glob(raster_dir+"*.xml")
     recs = []
     for raster_file in xml_files:
@@ -228,17 +235,18 @@ def read_raster_xml(masterdict):
                     except Exception as err:
                         pass
 
-
+                    # add volume-specific params to dict as an array
                     try:
                         if volumes:
-                            # add volume-specific params to dict as an array
                             global_param['rastervol'] = volumes
                     except Exception as err:
                         pass
-                        # print(('ERROR:', err))
+
                     recs.append((masterid,global_param))
+
             except Exception as err:
                 pass
+
     return recs
 
 def parse_refsource_str(srcstr):

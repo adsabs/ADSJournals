@@ -183,14 +183,15 @@ def calc_holdings(masterdict):
 
 def load_refsources(masterdict):
     print('lol.')
-    refsources = utils.create_refsource(config.get('LOLWUT'))
+    refsources = utils.create_refsource(config.get('BIB_TO_REFS_FILE'))
     if refsources:
         for bibstem, refsource in refsources.items():
-            if bibstem in masterdict.keys():
+            try:
                 masterid = masterdict[bibstem]
-                tasks.task_db_load_refsource(masterid,refsource)
-            else:
+            except Exception as err:
                 print('missing masterdict bibstem: ',bibstem)
+            else:
+                tasks.task_db_load_refsource(masterid,refsource)
     return
     
 
