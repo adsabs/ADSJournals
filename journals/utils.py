@@ -313,7 +313,8 @@ def create_refsource(infile):
             try:
                 (bibcode, srcfile) = l.strip().split('\t')
             except Exception as err:
-                print('Malformed line in source file: "%s"' % l.strip())
+                pass
+                # print('Malformed line in source file: "%s"' % l.strip())
             else:
                 try:
                     parsed_bib = parse_bibcodes(bibcode)
@@ -323,5 +324,6 @@ def create_refsource(infile):
                     source = parse_refsource_str(srcfile)
                     refsources = update_refsources(refsources, bibstem, year, volume, source)
                 except Exception as err:
-                    print('failed update_refsources: %s' % err)
+                    pass
+                    # print('failed update_refsources: %s' % err)
     return refsources
