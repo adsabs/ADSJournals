@@ -187,6 +187,7 @@ def load_refsources(masterdict):
     if refsources:
         for bibstem, refsource in refsources.items():
             try:
+                bibstem = bibstem.rstrip('.')
                 masterid = masterdict[bibstem]
                 refsource = str(refsource)
             except Exception as err:
