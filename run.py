@@ -188,6 +188,7 @@ def load_refsources(masterdict):
         for bibstem, refsource in refsources.items():
             try:
                 masterid = masterdict[bibstem]
+                refsource = str(refsource)
             except Exception as err:
                 print('missing masterdict bibstem: ',bibstem)
             else:

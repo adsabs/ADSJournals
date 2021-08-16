@@ -47,7 +47,7 @@ def parse_bibcodes(bibcode):
             page = bibcode[14:18]
             auth = bibcode[18]
             if volm in config.get('BIBSTEM_VOLUMES'):
-                stem = stem + volm
+                stem = year + stem + volm
                 volm = None
             parsed_bib = {"bibcode": bibcode, "year": year, "bibstem": stem,
                           "volume": volm, "qualifier": qual, "page": page,
