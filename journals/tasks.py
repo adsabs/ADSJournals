@@ -240,6 +240,7 @@ def task_db_load_refsource(masterid, refsource):
     with app.session_scope() as session:
         if masterid and refsource:
             try:
+                refsource = json.dumps(refsource.toJSON())
                 session.add(JournalsRefSource(masterid=masterid,
                                               refsource_list=refsource))
                 session.commit()

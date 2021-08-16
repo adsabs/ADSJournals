@@ -3,6 +3,7 @@ No.
 '''
 from __future__ import print_function
 import argparse
+import json
 import os
 from adsputils import setup_logging, load_config
 from journals import tasks
@@ -190,7 +191,6 @@ def load_refsources(masterdict):
             try:
                 bibstem = bibstem.rstrip('.')
                 masterid = masterdict[bibstem]
-                refsource = json.dumps(refsource.toJSON())
             except Exception as err:
                 imissing += 1 
                 pass

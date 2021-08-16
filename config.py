@@ -23,12 +23,12 @@ CANONICAL_BIB_FILE = JDB_DATA_DIR + 'bib2accno.dat'
 # RASTERIZING.xml directory
 RASTER_CONFIG_DIR = JDB_DATA_DIR + 'raster_config/'
 
+# REFSOURCE_FILE
+BIB_TO_REFS_FILE = JDB_DATA_DIR + 'citing2file.dat'
+
 # ESOURCES: for holdings table
 # Any new esources must be **prepended** to this list
 ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
                 'ADS_SCAN', 'ADS_PDF']
-
-# REFSOURCE_FILE
-BIB_TO_REFS_FILE = '/proj/ads/references/links/citing2file.dat'
 
 BIBSTEM_VOLUMES = ['book', 'conf', 'work', 'proc', 'rept', 'symp']
