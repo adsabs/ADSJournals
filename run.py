@@ -184,16 +184,24 @@ def calc_holdings(masterdict):
 
 def load_refsources(masterdict):
     refsources = utils.create_refsource()
+    missing_stems = []
+    loaded_stems = []
+
     if refsources:
+
         for bibstem, refsource in refsources.items():
             try:
                 bibstem = bibstem.rstrip('.')
                 masterid = masterdict[bibstem]
             except Exception as err:
                 logger.info("missing masterdict bibstem: (%s)" % bibstem)
+                missing_stems.append(bibstem)
             else:
                 tasks.task_db_load_refsource(masterid,refsource)
-    print('missing bibcodes:',imissing)
+                loaded_stems.append(bibstem)
+
+        logger.info("Loaded bibstems: %s\tMissing bibstems: %s" % (len(loaded_stems), len(missing_stems)))
+
     return
     
 
