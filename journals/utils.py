@@ -1,6 +1,5 @@
 from __future__ import print_function
 import chardet
-# import config
 import os
 import requests
 import string
@@ -285,7 +284,7 @@ def update_refsources(refsources, bibstem, year, volume, source):
             print('update existing failed: %s' % err)
     return refsources
 
-def create_refsource(infile):
+def create_refsource():
     '''
     Takes the input file from classic and outputs a json object
     containing source counts for each bibstem/volume pair.
@@ -308,6 +307,7 @@ def create_refsource(infile):
     volume pair a row.
     '''
     refsources = {}
+    infile = config.get('BIB_TO_REFS_FILE')
     with open(infile, 'r') as fin:
         for l in fin.readlines():
             try:

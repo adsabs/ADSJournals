@@ -183,7 +183,7 @@ def calc_holdings(masterdict):
     return
 
 def load_refsources(masterdict):
-    refsources = utils.create_refsource(config.get('BIB_TO_REFS_FILE'))
+    refsources = utils.create_refsource()
     if refsources:
         for bibstem, refsource in refsources.items():
             try:
