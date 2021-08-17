@@ -1,4 +1,4 @@
-LOGGING_LEVEL = 'INFO'
+LOGGING_LEVEL = 'WARNING'
 LOG_STDOUT = True
 '''
     configuration file for ADSJournals system
@@ -31,4 +31,4 @@ BIB_TO_REFS_FILE = JDB_DATA_DIR + 'citing2file.dat'
 ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
                 'ADS_SCAN', 'ADS_PDF']
 
-BIBSTEM_VOLUMES = ['book', 'conf', 'work', 'proc', 'rept', 'symp']
+BIBSTEM_VOLUMES = ['book', 'conf', 'work', 'proc', 'rept', 'symp', 'prop']
