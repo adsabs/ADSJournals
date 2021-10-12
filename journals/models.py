@@ -309,7 +309,7 @@ class JournalsRasterVolume(Base):
     created = Column(UTCDateTime, default=get_date)
 
     def __repr(self):
-        return "rastervolume.rvolid='{self.rasterid'".format(self=self)
+        return "rastervolume.rvolid='{self.rasterid}'".format(self=self)
 
 
 class JournalsRefSource(Base):

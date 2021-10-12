@@ -3,6 +3,7 @@ No.
 '''
 from __future__ import print_function
 import argparse
+import json
 import os
 from adsputils import setup_logging, load_config
 from journals import tasks
@@ -52,6 +53,12 @@ def get_arguments():
                         dest='load_raster',
                         action='store_true',
                         help='Load rasterization control parameters')
+
+    parser.add_argument('-ls',
+                        '--load-refsources',
+                        dest='load_refsources',
+                        action='store_true',
+                        help='Load refsources from citing2file.dat')
 
     args = parser.parse_args()
     return args
@@ -170,10 +177,33 @@ def calc_holdings(masterdict):
     '''
     for bibstem, masterid in list(masterdict.items()):
         try:
-            tasks.task_db_load_holdings.delay(bibstem, masterid)
+            tasks.task_db_load_holdings(bibstem, masterid)
         except Exception as err:
             logger.warn("Failed to load holdings for bibstem (%s): %s" % (bibstem, err))
     return
+
+def load_refsources(masterdict):
+    refsources = utils.create_refsource()
+    missing_stems = []
+    loaded_stems = []
+
+    if refsources:
+
+        for bibstem, refsource in refsources.items():
+            try:
+                bibstem = bibstem.rstrip('.')
+                masterid = masterdict[bibstem]
+            except Exception as err:
+                logger.info("missing masterdict bibstem: (%s)" % bibstem)
+                missing_stems.append(bibstem)
+            else:
+                tasks.task_db_load_refsource(masterid,refsource)
+                loaded_stems.append(bibstem)
+
+        logger.info("Loaded bibstems: %s\tMissing bibstems: %s" % (len(loaded_stems), len(missing_stems)))
+
+    return
+    
 
 
 def main():
@@ -213,6 +243,9 @@ def main():
 
         if args.load_raster:
             load_rasterconfig(masterdict)
+
+        if args.load_refsources:
+            load_refsources(masterdict)
 
 
 if __name__ == '__main__':
