@@ -325,3 +325,18 @@ class JournalsRefSource(Base):
 
     def __repr__(self):
         return "refsource.refsourceid='{self.refsourceid}'".format(self=self)
+
+
+class JournalsEditControl(Base):
+    __tablename__ = 'editcontrol'
+
+    editid = Column(Integer, primary_key=True, autoincrement=True,
+                    unique=True, nullable=False)
+    tablename = Column(String, nullable=False)
+    created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
+    editstatus = Column(String, nullable=False)
+    editfileid = Column(String, nullable=False)
+
+    def __repr__(self):
+        return "editcontrol.editid='{self.editid}'".format(self=self)
