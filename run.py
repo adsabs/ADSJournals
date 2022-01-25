@@ -60,6 +60,20 @@ def get_arguments():
                         action='store_true',
                         help='Load refsources from citing2file.dat')
 
+    parser.add_argument('-xi',
+                        '--checkin-table',
+                        dest='checkin_table',
+                        action='store',
+                        default=None,
+                        help='Check IN table TABLE from GSheets')
+
+    parser.add_argument('-xo',
+                        '--checkout-table',
+                        dest='checkout_table',
+                        action='store',
+                        default=None,
+                        help='Check OUT table TABLE to GSheets')
+
     args = parser.parse_args()
     return args
 
@@ -203,6 +217,27 @@ def load_refsources(masterdict):
         logger.info("Loaded bibstems: %s\tMissing bibstems: %s" % (len(loaded_stems), len(missing_stems)))
 
     return
+
+def checkin_table(tablename):
+    try:
+        result = tasks.task_checkin_table(tablename)
+    except Exception as err:
+        logger.warn("Unable to checkin table %s: %s" % (tablename, err))
+        return
+    else:
+        logger.info("Table %s successfully checked in from Sheets" % tablename)
+        return result
+
+
+def checkout_table(tablename):
+    try:
+        result = tasks.task_checkout_table(tablename)
+    except Exception as err:
+        logger.warn("Unable to checkout table %s: %s" % (tablename, err))
+        return
+    else:
+        logger.info("Table %s successfully checked out to Sheets" % tablename)
+        return result
     
 
 
@@ -246,6 +281,13 @@ def main():
 
         if args.load_refsources:
             load_refsources(masterdict)
+
+    if args.checkin_table:
+        result = checkin_table(args.checkin_table)
+        
+    if args.checkout_table:
+        result = checkout_table(args.checkout_table)
+        
 
 
 if __name__ == '__main__':

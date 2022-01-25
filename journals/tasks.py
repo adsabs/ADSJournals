@@ -6,18 +6,12 @@ from kombu import Queue
 from journals import app as app_module
 from journals.models import *
 #import journals.utils as utils
+from journals.exceptions import *
+from journals.sheetmanager import SpreadsheetManager
 import journals.holdings as holdings
 import journals.refsource as refsource
+ 
 
-
-class DBCommitException(Exception):
-    """Non-recoverable Error with making database commits."""
-    pass
-
-
-class DBReadException(Exception):
-    """Non-recoverable Error with making database selection."""
-    pass
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 
@@ -252,3 +246,18 @@ def task_db_load_refsource(masterid, refsource):
         else:
             logger.error("No refsource data to load!")
     return
+
+
+def task_checkout_table(tablename):
+    result = None
+    with app.session_scope() as session:
+        try:
+            table_record = session.query(JournalsEditControl).filter(JournalsEditControl.tablename.ilike(tablename).filter_by(editstatus='active').first()
+            if table_record:
+                logger.info("Table %s checked out already on %s: %s" % (tablename, table_record.created, table_record.editfileid)
+            else:
+                sheet = SpreadsheetManager(table=tablename)
+                result = sheet.get_sheet()
+        except Exception as err:
+            logger.warning("Error checking out table %s: %s" % (tablename, err))
+    return result

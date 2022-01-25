@@ -3,6 +3,12 @@ alembic==1.0.0
 bs4==0.0.1
 chardet==3.0.2
 future==0.18.2
+google-api-core==1.19.1
+google-api-python-client==1.11.0
+google-auth==1.30.0
+google-auth-httplib2==0.1.0
+google-auth-oauthlib==0.4.4
+googleapis-common-protos==1.52.0
 html5lib==1.1
 namedentities==1.9.4
 psycopg2-binary==2.8.6

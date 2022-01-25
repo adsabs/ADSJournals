@@ -6,6 +6,7 @@ import requests
 import journals.utils as utils
 from journals import app as app_module
 from adsputils import load_config
+from journals.exceptions import *
 
 proj_home = os.path.realpath(os.path.dirname(__file__)) + '/../'
 config = load_config(proj_home=proj_home)
@@ -14,14 +15,6 @@ logger = app.logger
 
 INDEXER_HOST = config.get('_INDEXER_HOST','localhost')
 INDEXER_PORT = config.get('_INDEXER_PORT','9983')
-
-
-class HoldingsQueryException(Exception):
-    pass
-
-
-class BadBibstemException(Exception):
-    pass
 
 
 class Holdings(object):
