@@ -32,3 +32,5 @@ ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
                 'ADS_SCAN', 'ADS_PDF']
 
 BIBSTEM_VOLUMES = ['book', 'conf', 'work', 'proc', 'rept', 'symp', 'prop']
+
+EDITABLE_TABLES = ['abbrevs', 'idents', 'names', 'publisher', 'raster', 'rastervolume', 'status']
