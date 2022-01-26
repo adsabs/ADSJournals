@@ -55,7 +55,7 @@ class SpreadsheetManager(object):
     def get_sheet(self):
         try:
             # Create connection to Google
-            self.service = build('sheets', 'v4', credentials=self.creds)
+            self.service = build('sheets', 'v4', credentials=self.creds, cache_discovery=False)
 
             # Call the Sheets API
             self.sheet = self.service.spreadsheets()
@@ -66,7 +66,7 @@ class SpreadsheetManager(object):
             if not self.sheetid:
                 # Create a sheet on google
                 try:
-                    newsheet = {"properties": {"title": self.title}}
+                    newsheet = {"properties": {"title": self.table}}
                     request = self.sheet.create(body=newsheet)
                     self.sheetprops = request.execute()
                     self._dbcheckout()

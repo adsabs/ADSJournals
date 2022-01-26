@@ -222,24 +222,21 @@ def checkin_table(tablename):
     try:
         result = tasks.task_checkin_table(tablename)
     except Exception as err:
-        logger.warn("Unable to checkin table %s: %s" % (tablename, err))
+        logger.warning("Unable to checkin table %s: %s" % (tablename, err))
         return
     else:
-        logger.info("Table %s successfully checked in from Sheets" % tablename)
+        logger.warning("Table %s successfully checked in from Sheets" % tablename)
         return result
-
 
 def checkout_table(tablename):
     try:
         result = tasks.task_checkout_table(tablename)
     except Exception as err:
-        logger.warn("Unable to checkout table %s: %s" % (tablename, err))
+        logger.warning("Unable to checkout table %s: %s" % (tablename, err))
         return
     else:
-        logger.info("Table %s successfully checked out to Sheets" % tablename)
+        logger.warning("Table %s successfully checked out to Sheets" % tablename)
         return result
-    
-
 
 def main():
     '''

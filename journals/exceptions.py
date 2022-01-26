@@ -31,6 +31,14 @@ class DBReadException(Exception):
     pass
 
 
+class TableCheckinException(Exception):
+    pass
+
+
+class TableCheckoutException(Exception):
+    pass
+
+
 #Utils Exceptions
 class ReadBibstemException(Exception):
     pass

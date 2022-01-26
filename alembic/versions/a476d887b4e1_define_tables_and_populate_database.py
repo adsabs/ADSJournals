@@ -284,10 +284,23 @@ def upgrade():
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('refsourceid', 'masterid'),
                     sa.UniqueConstraint('refsourceid'))
+
+    # history table not required
+    op.create_table('editcontrol',
+                    sa.Column('editid', sa.Integer(), autoincrement=True,
+                              nullable=False),
+                    sa.Column('tablename', sa.String(), nullable=False),
+                    sa.Column('created', sa.TIMESTAMP(), nullable=True),
+                    sa.Column('updated', sa.TIMESTAMP(), nullable=True),
+                    sa.Column('editstatus', sa.String(), nullable=False),
+                    sa.Column('editfileid', sa.String(), nullable=False),
+                    sa.PrimaryKeyConstraint('editid'),
+                    sa.UniqueConstraint('editid'))
     # ### end Alembic commands ###
 
 
 def downgrade():
+    op.drop_table('editcontrol')
     op.drop_table('refsource')
     op.drop_table('rastervolume')
     op.drop_table('raster_hist')
