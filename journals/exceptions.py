@@ -39,6 +39,10 @@ class DBReadException(Exception):
     pass
 
 
+class InvalidTableException(Exception):
+    pass
+
+
 class TableCheckinException(Exception):
     pass
 
