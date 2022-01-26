@@ -1,13 +1,21 @@
 # SheetManager Exceptions
-class InitSheetManagerError(Exception):
+class GoogleConnectionException(Exception):
     pass
 
 
-class AuthSheetManagerError(Exception):
+class InitSheetManagerException(Exception):
     pass
 
 
-class CheckinError(Exception):
+class AuthSheetManagerException(Exception):
+    pass
+
+
+class CreateSheetException(Exception):
+    pass
+
+
+class LoadSheetException(Exception):
     pass
 
 

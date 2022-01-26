@@ -284,6 +284,7 @@ def main():
         
     if args.checkout_table:
         result = checkout_table(args.checkout_table)
+        print('haha result!',result)
         
 
 

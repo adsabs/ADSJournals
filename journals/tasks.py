@@ -249,17 +249,18 @@ def task_db_load_refsource(masterid, refsource):
 
 
 def task_checkout_table(tablename):
-    with app.session_scope() as session:
-        try:
+    try:
+        with app.session_scope() as session:
             table_record = session.query(JournalsEditControl).filter(JournalsEditControl.tablename.ilike(tablename), JournalsEditControl.editstatus=='active').first()
             if table_record:
-                raise TableCheckoutException("Table %s checked out already -- (timestamp:%s, fileid:%s)" % (tablename, table_record.created, table_record.editfileid))
+                sheet = SpreadsheetManager(table=table_record.tablename, sheetid=table_record.editfileid)
+                logger.info("Table %s is already checked out: Time: %s, ID: %s",
             else:
                 sheet = SpreadsheetManager(table=tablename)
-                result = sheet.get_sheet()
                 session.add(JournalsEditControl(tablename=tablename, editstatus='active', editfileid=sheet.sheetid))
                 session.commit()
-                return result
-        except Exception as err:
-            raise TableCheckoutException("Error checking out table %s: %s" % (tablename, err))
-    return
+            result = sheet.get_sheet_prop()
+    except Exception as err:
+        raise TableCheckoutException("Error checking out table %s: %s" % (tablename, err))
+    else:
+        return result

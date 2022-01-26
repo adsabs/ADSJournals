@@ -19,13 +19,14 @@ class SpreadsheetManager(object):
         self.service = None
         self.sheetid = sheetid
         self.sheet = None
+        self.sheetprops = None
         self.tokenfile = tokenfile
         self.credsfile = credsfile
         self.scopes = ['https://www.googleapis.com/auth/spreadsheets']
         try:
             self._authorize()
         except Exception as err:
-            raise InitSheetManagerError(err)
+            raise InitSheetManagerException(err)
 
 
     def _authorize(self):
@@ -49,10 +50,10 @@ class SpreadsheetManager(object):
                 with open(self.tokenfile, 'w') as token:
                     token.write(self.creds.to_json())
         except Exception as err:
-            raise AuthSheetManagerError(err)
+            raise AuthSheetManagerException(err)
 
 
-    def get_sheet(self):
+    def get_sheet_prop(self):
         try:
             # Create connection to Google
             self.service = build('sheets', 'v4', credentials=self.creds, cache_discovery=False)
@@ -60,8 +61,8 @@ class SpreadsheetManager(object):
             # Call the Sheets API
             self.sheet = self.service.spreadsheets()
 
-        except HttpError as err:
-            print(err)
+        except Exception as err:
+            raise GoogleConnectionException(err)
         else:
             if not self.sheetid:
                 # Create a sheet on google
@@ -70,37 +71,15 @@ class SpreadsheetManager(object):
                     request = self.sheet.create(body=newsheet)
                     self.sheetprops = request.execute()
                     self.sheetid = self.sheetprops['spreadsheetId']
-                    self._dbcheckout()
                 except Exception as err:
-                    print('Unable to create sheet! %s' % err)
+                    raise CreateSheetException(err)
             else:
                 # Load a sheet from google
                 try:
                     request = self.sheet.get(spreadsheetId=self.sheetid)
                     self.sheetprops = request.execute()
-                    self._dbcheckin()
                 except Exception as err:
-                    print('Unable to retrieve sheet! %s' % err)
+                    raise LoadSheetException(err)
+            return self.sheetprops
 
-    def _dbcheckin(self):
-        # write the sheetid, timestamp, and tablename to the
-        # accounting table in journalsdb
-        try:
-            #placeholder stuff
-            self.sheetid = self.sheetprops['spreadsheetId']
-            sheetURL = self.sheetprops['spreadsheetUrl']
-            print('ID: %s\nURL: %s' % (self.sheetid, sheetURL))
-            
-        except Exception as err:
-            raise CheckinError(err)
-            
-    def _dbcheckout(self):
-        # get the sheet
-        try:
-            #placeholder stuff
-            self.sheetid = self.sheetprops['spreadsheetId']
-            sheetURL = self.sheetprops['spreadsheetUrl']
-            print('ID: %s\nURL: %s' % (self.sheetid, sheetURL))
-        except Exception as err:
-            raise CheckoutError(err)
 
