@@ -253,13 +253,13 @@ def task_checkout_table(tablename):
         try:
             table_record = session.query(JournalsEditControl).filter(JournalsEditControl.tablename.ilike(tablename), JournalsEditControl.editstatus=='active').first()
             if table_record:
-                raise CheckoutTableException("Table %s checked out already on %s: %s" % (tablename, table_record.created, table_record.editfileid))
+                raise TableCheckoutException("Table %s checked out already -- (timestamp:%s, fileid:%s)" % (tablename, table_record.created, table_record.editfileid))
             else:
                 sheet = SpreadsheetManager(table=tablename)
                 result = sheet.get_sheet()
-                session.add(JournalsEditControl(tablename=tablename, editstatus='active', editfileid=sheet.sheetid)
+                session.add(JournalsEditControl(tablename=tablename, editstatus='active', editfileid=sheet.sheetid))
                 session.commit()
                 return result
         except Exception as err:
-            raise CheckoutTableException("Error checking out table %s: %s" % (tablename, err))
+            raise TableCheckoutException("Error checking out table %s: %s" % (tablename, err))
     return

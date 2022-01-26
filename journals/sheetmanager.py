@@ -69,6 +69,7 @@ class SpreadsheetManager(object):
                     newsheet = {"properties": {"title": self.table}}
                     request = self.sheet.create(body=newsheet)
                     self.sheetprops = request.execute()
+                    self.sheetid = self.sheetprops['spreadsheetId']
                     self._dbcheckout()
                 except Exception as err:
                     print('Unable to create sheet! %s' % err)
@@ -86,9 +87,9 @@ class SpreadsheetManager(object):
         # accounting table in journalsdb
         try:
             #placeholder stuff
-            sheetID = self.sheetprops['spreadsheetId']
+            self.sheetid = self.sheetprops['spreadsheetId']
             sheetURL = self.sheetprops['spreadsheetUrl']
-            print('ID: %s\nURL: %s' % (sheetID, sheetURL))
+            print('ID: %s\nURL: %s' % (self.sheetid, sheetURL))
             
         except Exception as err:
             raise CheckinError(err)
@@ -97,9 +98,9 @@ class SpreadsheetManager(object):
         # get the sheet
         try:
             #placeholder stuff
-            sheetID = self.sheetprops['spreadsheetId']
+            self.sheetid = self.sheetprops['spreadsheetId']
             sheetURL = self.sheetprops['spreadsheetUrl']
-            print('ID: %s\nURL: %s' % (sheetID, sheetURL))
+            print('ID: %s\nURL: %s' % (self.sheetid, sheetURL))
         except Exception as err:
             raise CheckoutError(err)
 
