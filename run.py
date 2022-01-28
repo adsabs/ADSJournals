@@ -235,7 +235,7 @@ def checkout_table(tablename):
         logger.warning("Unable to checkout table %s: %s" % (tablename, err))
         return
     else:
-        logger.warning("Table %s successfully checked out to Sheets" % tablename)
+        logger.warning("Table %s is available in Sheets" % tablename)
         return result
 
 def main():
@@ -284,7 +284,7 @@ def main():
         
     if args.checkout_table:
         result = checkout_table(args.checkout_table)
-        print('haha result!',result)
+        pprint(result)
         
 
 
