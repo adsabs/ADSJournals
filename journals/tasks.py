@@ -58,7 +58,7 @@ def task_db_load_abbrevs(recs):
                                                       abbreviation=r[1]))
                     session.commit()
                 except Exception as e:
-                    logger.warn("Problem with abbreviation: %s,%s" %
+                    logger.debug("Problem with abbreviation: %s,%s" %
                                 (r[0], r[1]))
         else:
             logger.info("There were no abbreviations to load!")
@@ -75,7 +75,7 @@ def task_db_load_issn(recs):
                                                     id_value=r[1]))
                     session.commit()
                 except Exception as e:
-                    logger.warn("Duplicate ISSN ident skipped: %s,%s" %
+                    logger.debug("Duplicate ISSN ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -94,7 +94,7 @@ def task_db_load_xref(recs):
                                                     id_value=r[1]))
                     session.commit()
                 except Exception as e:
-                    logger.warn("Duplicate XREF ident skipped: %s,%s" %
+                    logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -112,7 +112,7 @@ def task_db_load_publisher(recs):
                                                   puburl=r[2]))
                     session.commit()
                 except Exception as e:
-                    logger.warn("Duplicate XREF ident skipped: %s,%s" %
+                    logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -168,9 +168,9 @@ def task_db_load_raster(recs):
                                                height=height,
                                                embargo=embargo,
                                                options=options))
-                    beew = session.commit()
+                    session.commit()
                 except Exception as e:
-                    logger.warn("Cant load raster data for (%s, %s): %s" %
+                    logger.debug("Cant load raster data for (%s, %s): %s" %
                                 (r[0], bibstem, e))
                     session.rollback()
                     session.flush()
@@ -202,9 +202,9 @@ def task_db_load_refsource(masterid, refsource):
                 session.add(JournalsRefSource(masterid=masterid,
                                               refsource_list=refsource))
                 session.commit()
-            except Exception as e:
-                logger.warning("Error adding holdings for %s: %s" %
-                               (masterid, e))
+            except Exception as err:
+                logger.debug("Error adding refsources for %s: %s" %
+                               (masterid, err))
                 session.rollback()
                 session.commit()
         else:
@@ -221,7 +221,7 @@ def task_checkout_table(tablename):
             if table_record:
                 sheet = SpreadsheetManager(table=table_record.tablename, sheetid=table_record.editfileid)
                 result = sheet.get_sheet_prop()
-                logger.info("Table %s is already checked out: Time: %s, ID: %s" % (tablename, table_record.created, table_record.editfileid))
+                logger.debug("Table %s is already checked out: Time: %s, ID: %s" % (tablename, table_record.created, table_record.editfileid))
             else:
                 sheet = SpreadsheetManager(table=tablename)
                 result = sheet.get_sheet_prop()

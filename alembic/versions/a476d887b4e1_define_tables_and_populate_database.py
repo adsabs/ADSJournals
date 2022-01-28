@@ -37,8 +37,10 @@ def upgrade():
                                                           name='ref_status'),
                               nullable=False),
                     sa.Column('comments', sa.Text(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.PrimaryKeyConstraint('masterid'),
                     sa.UniqueConstraint('bibstem'),
                     sa.UniqueConstraint('masterid'))
@@ -57,7 +59,8 @@ def upgrade():
                     sa.Column('comments', sa.Text(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -71,8 +74,10 @@ def upgrade():
                     sa.Column('name_native_language', sa.String(),
                               nullable=True),
                     sa.Column('name_normalized', sa.String(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('nameid', 'masterid'),
                     sa.UniqueConstraint('nameid'))
@@ -90,7 +95,8 @@ def upgrade():
                     sa.Column('name_normalized', sa.String(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -99,8 +105,10 @@ def upgrade():
                               nullable=False),
                     sa.Column('masterid', sa.Integer(), nullable=False),
                     sa.Column('abbreviation', sa.String(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('abbrevid', 'masterid'),
                     sa.UniqueConstraint('abbrevid'))
@@ -114,7 +122,8 @@ def upgrade():
                     sa.Column('abbreviation', sa.String(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -124,8 +133,10 @@ def upgrade():
                     sa.Column('masterid', sa.Integer(), nullable=False),
                     sa.Column('id_type', sa.String(), nullable=True),
                     sa.Column('id_value', sa.String(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('identid', 'masterid'),
                     sa.UniqueConstraint('identid'))
@@ -139,7 +150,8 @@ def upgrade():
                     sa.Column('id_value', sa.String(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -153,8 +165,10 @@ def upgrade():
                     sa.Column('puburl', sa.String(), nullable=True),
                     sa.Column('year_start', sa.Integer(), nullable=True),
                     sa.Column('year_end', sa.Integer(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('publisherid', 'masterid'),
                     sa.UniqueConstraint('publisherid'))
@@ -172,7 +186,8 @@ def upgrade():
                     sa.Column('year_end', sa.Integer(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -187,8 +202,10 @@ def upgrade():
                     sa.Column('successor_id', sa.Integer(), nullable=True),
                     sa.Column('orgid', sa.String(), nullable=True),
                     sa.Column('notes', sa.Text(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('masterid', 'statusid'),
                     sa.UniqueConstraint('statusid'))
@@ -207,7 +224,8 @@ def upgrade():
                     sa.Column('notes', sa.Text(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -223,8 +241,10 @@ def upgrade():
                     sa.Column('height', sa.String(), nullable=True),
                     sa.Column('embargo', sa.String(), nullable=True),
                     sa.Column('options', sa.String(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('masterid', 'rasterid'),
                     sa.UniqueConstraint('rasterid'))
@@ -244,7 +264,8 @@ def upgrade():
                     sa.Column('options', sa.String(), nullable=True),
                     sa.Column('created', UTCDateTime, nullable=True),
                     sa.Column('updated', UTCDateTime, nullable=True),
-                    sa.Column('superseded', UTCDateTime, nullable=False, default=get_date),
+                    sa.Column('superseded', UTCDateTime, nullable=False,
+                              default=get_date),
                     sa.PrimaryKeyConstraint('histid'),
                     sa.UniqueConstraint('histid'))
 
@@ -255,8 +276,10 @@ def upgrade():
                               nullable=False),
                     sa.Column('volume_number', sa.String(), nullable=False),
                     sa.Column('volume_properties', sa.Text(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['rasterid'], ['raster.rasterid']),
                     sa.PrimaryKeyConstraint('rasterid', 'rvolid'),
                     sa.UniqueConstraint('rvolid'))
@@ -267,8 +290,10 @@ def upgrade():
                               nullable=False),
                     sa.Column('masterid', sa.Integer(), nullable=False),
                     sa.Column('refsource_list', sa.Text(), nullable=True),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.ForeignKeyConstraint(['masterid'], ['master.masterid']),
                     sa.PrimaryKeyConstraint('refsourceid', 'masterid'),
                     sa.UniqueConstraint('refsourceid'))
@@ -278,10 +303,12 @@ def upgrade():
                     sa.Column('editid', sa.Integer(), autoincrement=True,
                               nullable=False),
                     sa.Column('tablename', sa.String(), nullable=False),
-                    sa.Column('created', UTCDateTime, nullable=True, default=get_date),
-                    sa.Column('updated', UTCDateTime, nullable=True, on_update=get_date),
                     sa.Column('editstatus', sa.String(), nullable=False),
                     sa.Column('editfileid', sa.String(), nullable=False),
+                    sa.Column('created', UTCDateTime, nullable=True,
+                              default=get_date),
+                    sa.Column('updated', UTCDateTime, nullable=True,
+                              onupdate=get_date),
                     sa.PrimaryKeyConstraint('editid'),
                     sa.UniqueConstraint('editid'))
     # ### end Alembic commands ###

@@ -22,7 +22,7 @@ class JournalsMaster(Base):
     defunct = Column(Boolean, default=False)
     pubtype = Column(pub_type, nullable=False)
     refereed = Column(ref_status, nullable=False)
-    notes = Column(Text)
+    comments = Column(Text)
     created = Column(UTCDateTime, default=get_date)
     updated = Column(UTCDateTime, onupdate=get_date)
 
