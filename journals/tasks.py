@@ -8,7 +8,6 @@ from journals.models import *
 #import journals.utils as utils
 from journals.exceptions import *
 from journals.sheetmanager import SpreadsheetManager
-import journals.holdings as holdings
 import journals.refsource as refsource
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
@@ -17,8 +16,7 @@ app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globa
 logger = app.logger
 
 app.conf.CELERY_QUEUES = (
-    Queue('load-datafiles', app.exchange, routing_key='load-datafiles'),
-    Queue('load-holdings', app.exchange, routing_key='load-holdings')
+    Queue('load-datafiles', app.exchange, routing_key='load-datafiles')
 )
 
 @app.task(queue='load-datafiles')
@@ -195,38 +193,7 @@ def task_db_get_bibstem_masterid():
     return dictionary
 
 
-@app.task(queue='load-holdings')
-def task_db_load_holdings(bibstem, masterid):
-    with app.session_scope() as session:
-        if masterid:
-            hold = holdings.Holdings()
-            bibstem = str(bibstem)
-            logger.debug("Loading holdings for bibstem: %s" % bibstem)
-            try:
-                output = hold.fetch(bibstem)
-                h_out = hold.process_output()
-                for rec in h_out:
-                    try:
-                        rec_data = json.dumps(rec['holdings'])
-                        rec_vol = rec['volume']
-                        session.add(JournalsHoldings(masterid=masterid,
-                                                     volume=rec_vol,
-                                                     volumes_list=rec_data))
-                        session.commit()
-                    except Exception as e:
-                        logger.warning("Error adding holdings for %s: %s" %
-                                    (bibstem, e))
-                        session.rollback()
-                        session.commit()
-            except Exception as e:
-                logger.debug("Error loading holdings: %s", e)
-                logger.debug("No holdings for bibstem: %s", bibstem)
-        else:
-            logger.error("No holdings data to load!")
-    return
-
-
-@app.task(queue='load-refsources')
+@app.task(queue='load-datafiles')
 def task_db_load_refsource(masterid, refsource):
     with app.session_scope() as session:
         if masterid and refsource:

@@ -36,12 +36,6 @@ def get_arguments():
                         action='store_true',
                         help='Load list of journal name abbreviations')
 
-    parser.add_argument('-ch',
-                        '--calculate-holdings',
-                        dest='calc_holdings',
-                        action='store_true',
-                        help='Populate holdings from Solr data')
-
     parser.add_argument('-ca',
                         '--load-complete-ast',
                         dest='load_ca',
@@ -185,17 +179,6 @@ def load_completeness(masterdict):
     return
 
 
-def calc_holdings(masterdict):
-    '''
-    No.
-    '''
-    for bibstem, masterid in list(masterdict.items()):
-        try:
-            tasks.task_db_load_holdings(bibstem, masterid)
-        except Exception as err:
-            logger.warn("Failed to load holdings for bibstem (%s): %s" % (bibstem, err))
-    return
-
 def load_refsources(masterdict):
     refsources = utils.create_refsource()
     missing_stems = []
@@ -268,10 +251,6 @@ def main():
         if args.load_ca:
             # astro journal data
             load_completeness(masterdict)
-
-        if args.calc_holdings:
-            # holdings: be aware this is a big Solr query
-            calc_holdings(masterdict)
 
         if args.load_raster:
             load_rasterconfig(masterdict)

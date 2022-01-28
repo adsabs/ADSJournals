@@ -20,11 +20,12 @@ class JournalsMaster(Base):
     primary_language = Column(String)
     multilingual = Column(Boolean, default=False)
     defunct = Column(Boolean, default=False)
-    updated = Column(UTCDateTime, onupdate=get_date)
-    created = Column(UTCDateTime, default=get_date)
-
     pubtype = Column(pub_type, nullable=False)
     refereed = Column(ref_status, nullable=False)
+    notes = Column(Text)
+    created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
+
 
     def __repr__(self):
         return "master.masterid='{self.masterid}'".format(self=self)
@@ -41,12 +42,13 @@ class JournalsMasterHistory(Base):
     primary_language = Column(String)
     multilingual = Column(Boolean)
     defunct = Column(Boolean)
-    updated = Column(UTCDateTime)
-    created = Column(UTCDateTime)
-    superseded = Column(UTCDateTime, default=get_date)
-
     pubtype = Column(String)
     refereed = Column(String)
+    notes = Column(Text)
+    created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
+    superseded = Column(UTCDateTime, default=get_date)
+
 
     def __repr__(self):
         return "master_hist.masterid='{self.masterid}'".format(self=self)
@@ -63,8 +65,8 @@ class JournalsNames(Base):
     title_language = Column(String)
     name_native_language = Column(String)
     name_normalized = Column(String)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "names.masterid='{self.masterid}'".format(self=self)
@@ -81,8 +83,8 @@ class JournalsNamesHistory(Base):
     title_language = Column(String)
     name_native_language = Column(String)
     name_normalized = Column(String)
-    updated = Column(UTCDateTime)
     created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
     superseded = Column(UTCDateTime, default=get_date)
 
     def __repr__(self):
@@ -97,8 +99,8 @@ class JournalsAbbreviations(Base):
     masterid = Column(Integer, ForeignKey('master.masterid'),
                       primary_key=True, nullable=False)
     abbreviation = Column(String)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "abbrevs.abbrevid='{self.abbrevid}'".format(self=self)
@@ -112,8 +114,8 @@ class JournalsAbbreviationsHistory(Base):
     abbrevid = Column(Integer)
     masterid = Column(Integer)
     abbreviation = Column(String)
-    updated = Column(UTCDateTime, onupdate=get_date)
-    created = Column(UTCDateTime, default=get_date)
+    created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
     superseded = Column(UTCDateTime, default=get_date)
 
     def __repr__(self):
@@ -129,8 +131,8 @@ class JournalsIdentifiers(Base):
                       primary_key=True, nullable=False)
     id_type = Column(String)
     id_value = Column(String)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "idents.identid='{self.identid}'".format(self=self)
@@ -145,8 +147,8 @@ class JournalsIdentifiersHistory(Base):
     masterid = Column(Integer)
     id_type = Column(String)
     id_value = Column(String)
-    updated = Column(UTCDateTime)
     created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
     superseded = Column(UTCDateTime, default=get_date)
 
     def __repr__(self):
@@ -166,8 +168,8 @@ class JournalsPublisher(Base):
     puburl = Column(String)
     year_start = Column(Integer)
     year_end = Column(Integer)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "publisher.publisherid='{self.publisherid}'".format(self=self)
@@ -185,8 +187,9 @@ class JournalsPublisherHistory(Base):
     puburl = Column(String)
     year_start = Column(Integer)
     year_end = Column(Integer)
-    updated = Column(UTCDateTime, onupdate=get_date)
-    created = Column(UTCDateTime, default=get_date)
+    created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
+    superseded = Column(UTCDateTime, default=get_date)
 
     def __repr__(self):
         return "publisher_hist.publisherid='{self.publisherid}'"\
@@ -207,8 +210,8 @@ class JournalsStatus(Base):
     successor_id = Column(Integer, ForeignKey('publisher.publisherid'))
     orgid = Column(String)
     notes = Column(String)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "pubhist.pubhistid='{self.pubhistid}'".format(self=self)
@@ -227,29 +230,12 @@ class JournalsStatusHistory(Base):
     successor_id = Column(Integer)
     orgid = Column(String)
     notes = Column(String)
-    updated = Column(UTCDateTime)
     created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
     superseded = Column(UTCDateTime, default=get_date)
 
     def __repr__(self):
         return "pubhist_hist.pubhistid='{self.pubhistid}')".format(self=self)
-
-
-class JournalsHoldings(Base):
-    __tablename__ = 'holdings'
-
-    holdingsid = Column(Integer, primary_key=True, autoincrement=True,
-                        unique=True, nullable=False)
-    masterid = Column(Integer, ForeignKey('master.masterid'),
-                      primary_key=True, nullable=False)
-    volume = Column(String)
-    volumes_list = Column(Text)
-    complete = Column(Boolean, default=False)
-    updated = Column(UTCDateTime, onupdate=get_date)
-    created = Column(UTCDateTime, default=get_date)
-
-    def __repr__(self):
-        return "holdings.holdingsid='{self.holdingsid}'".format(self=self)
 
 
 class JournalsRaster(Base):
@@ -267,8 +253,8 @@ class JournalsRaster(Base):
     height = Column(String, nullable=True)
     embargo = Column(String, nullable=True)
     options = Column(String, nullable=True)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr(self):
         return "raster.rasterid='{self.rasterid}'".format(self=self)
@@ -279,18 +265,18 @@ class JournalsRasterHistory(Base):
 
     histid = Column(Integer, primary_key=True, autoincrement=True,
                     unique=True, nullable=False)
-    masterid = Column(Integer, nullable=False)
-    rasterid = Column(Integer, nullable=False)
-    copyrt_file = Column(String, nullable=True)
-    pubtype = Column(String, nullable=True)
-    bibstem = Column(String, nullable=True)
-    abbrev = Column(String, nullable=True)
-    width = Column(String, nullable=True)
-    height = Column(String, nullable=True)
-    embargo = Column(String, nullable=True)
-    options = Column(String, nullable=True)
-    updated = Column(UTCDateTime)
+    masterid = Column(Integer)
+    rasterid = Column(Integer)
+    copyrt_file = Column(String)
+    pubtype = Column(String)
+    bibstem = Column(String)
+    abbrev = Column(String)
+    width = Column(String)
+    height = Column(String)
+    embargo = Column(String)
+    options = Column(String)
     created = Column(UTCDateTime)
+    updated = Column(UTCDateTime)
     superseded = Column(UTCDateTime, default=get_date)
 
     def __repr(self):
@@ -305,8 +291,8 @@ class JournalsRasterVolume(Base):
                     unique=True, nullable=False)
     volume_number = Column(String, nullable=False)
     volume_properties = Column(Text)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr(self):
         return "rastervolume.rvolid='{self.rasterid}'".format(self=self)
@@ -320,8 +306,8 @@ class JournalsRefSource(Base):
     masterid = Column(Integer, ForeignKey('master.masterid'),
                       primary_key=True, nullable=False)
     refsource_list = Column(Text)
-    updated = Column(UTCDateTime, onupdate=get_date)
     created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "refsource.refsourceid='{self.refsourceid}'".format(self=self)
@@ -333,10 +319,10 @@ class JournalsEditControl(Base):
     editid = Column(Integer, primary_key=True, autoincrement=True,
                     unique=True, nullable=False)
     tablename = Column(String, nullable=False)
-    created = Column(UTCDateTime, default=get_date)
-    updated = Column(UTCDateTime, onupdate=get_date)
     editstatus = Column(String, nullable=False)
     editfileid = Column(String, nullable=False)
+    created = Column(UTCDateTime, default=get_date)
+    updated = Column(UTCDateTime, onupdate=get_date)
 
     def __repr__(self):
         return "editcontrol.editid='{self.editid}'".format(self=self)
