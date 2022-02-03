@@ -36,12 +36,6 @@ def get_arguments():
                         action='store_true',
                         help='Load list of journal name abbreviations')
 
-    parser.add_argument('-ch',
-                        '--calculate-holdings',
-                        dest='calc_holdings',
-                        action='store_true',
-                        help='Populate holdings from Solr data')
-
     parser.add_argument('-ca',
                         '--load-complete-ast',
                         dest='load_ca',
@@ -59,6 +53,20 @@ def get_arguments():
                         dest='load_refsources',
                         action='store_true',
                         help='Load refsources from citing2file.dat')
+
+    parser.add_argument('-xi',
+                        '--checkin-table',
+                        dest='checkin_table',
+                        action='store',
+                        default=None,
+                        help='Check IN table TABLE from GSheets')
+
+    parser.add_argument('-xo',
+                        '--checkout-table',
+                        dest='checkout_table',
+                        action='store',
+                        default=None,
+                        help='Check OUT table TABLE to GSheets')
 
     args = parser.parse_args()
     return args
@@ -171,17 +179,6 @@ def load_completeness(masterdict):
     return
 
 
-def calc_holdings(masterdict):
-    '''
-    No.
-    '''
-    for bibstem, masterid in list(masterdict.items()):
-        try:
-            tasks.task_db_load_holdings(bibstem, masterid)
-        except Exception as err:
-            logger.warn("Failed to load holdings for bibstem (%s): %s" % (bibstem, err))
-    return
-
 def load_refsources(masterdict):
     refsources = utils.create_refsource()
     missing_stems = []
@@ -203,8 +200,26 @@ def load_refsources(masterdict):
         logger.info("Loaded bibstems: %s\tMissing bibstems: %s" % (len(loaded_stems), len(missing_stems)))
 
     return
-    
 
+def checkin_table(tablename):
+    try:
+        result = tasks.task_checkin_table(tablename)
+    except Exception as err:
+        logger.warning("Unable to checkin table %s: %s" % (tablename, err))
+        return
+    else:
+        logger.warning("Table %s successfully checked in from Sheets" % tablename)
+        return result
+
+def checkout_table(tablename):
+    try:
+        result = tasks.task_checkout_table(tablename)
+    except Exception as err:
+        logger.warning("Unable to checkout table %s: %s" % (tablename, err))
+        return
+    else:
+        logger.warning("Table %s is available in Sheets" % tablename)
+        return result
 
 def main():
     '''
@@ -237,15 +252,19 @@ def main():
             # astro journal data
             load_completeness(masterdict)
 
-        if args.calc_holdings:
-            # holdings: be aware this is a big Solr query
-            calc_holdings(masterdict)
-
         if args.load_raster:
             load_rasterconfig(masterdict)
 
         if args.load_refsources:
             load_refsources(masterdict)
+
+    if args.checkin_table:
+        result = checkin_table(args.checkin_table)
+        
+    if args.checkout_table:
+        result = checkout_table(args.checkout_table)
+        pprint(result)
+        
 
 
 if __name__ == '__main__':

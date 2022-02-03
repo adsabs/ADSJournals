@@ -4,7 +4,7 @@ LOG_STDOUT = True
     configuration file for ADSJournals system
 '''
 # COLLECTIONS is a list of which collections/databases are stored
-COLLECTIONS = ['ast', 'phy', 'gen']
+COLLECTIONS = ['ast', 'phy', 'gen', 'pre']
 
 # DATA_DIRECTORY:
 JDB_DATA_DIR = '/proj/ads/abstracts/config/journalsdb/PIPELINE/data/'
@@ -26,9 +26,6 @@ RASTER_CONFIG_DIR = JDB_DATA_DIR + 'raster_config/'
 # REFSOURCE_FILE
 BIB_TO_REFS_FILE = JDB_DATA_DIR + 'citing2file.dat'
 
-# ESOURCES: for holdings table
-# Any new esources must be **prepended** to this list
-ESOURCE_LIST = ['PUB_HTML', 'PUB_PDF', 'EPRINT_HTML', 'EPRINT_PDF',
-                'ADS_SCAN', 'ADS_PDF']
-
 BIBSTEM_VOLUMES = ['book', 'conf', 'work', 'proc', 'rept', 'symp', 'prop']
+
+EDITABLE_TABLES = ['abbrevs', 'master', 'idents', 'names', 'publisher', 'raster', 'rastervolume', 'status']

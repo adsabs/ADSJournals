@@ -6,18 +6,9 @@ from kombu import Queue
 from journals import app as app_module
 from journals.models import *
 #import journals.utils as utils
-import journals.holdings as holdings
+from journals.exceptions import *
+from journals.sheetmanager import SpreadsheetManager
 import journals.refsource as refsource
-
-
-class DBCommitException(Exception):
-    """Non-recoverable Error with making database commits."""
-    pass
-
-
-class DBReadException(Exception):
-    """Non-recoverable Error with making database selection."""
-    pass
 
 proj_home = os.path.realpath(os.path.join(os.path.dirname(__file__), '../'))
 
@@ -25,10 +16,8 @@ app = app_module.ADSJournalsCelery('journals', proj_home=proj_home, config=globa
 logger = app.logger
 
 app.conf.CELERY_QUEUES = (
-    Queue('load-datafiles', app.exchange, routing_key='load-datafiles'),
-    Queue('load-holdings', app.exchange, routing_key='load-holdings')
+    Queue('load-datafiles', app.exchange, routing_key='load-datafiles')
 )
-
 
 @app.task(queue='load-datafiles')
 def task_db_bibstems_to_master(recs):
@@ -54,8 +43,8 @@ def task_db_bibstems_to_master(recs):
                     logger.debug("task_db_bibstems_to_master: Bibstem %s already in master", r[0])
             try:
                 session.commit()
-            except Exception as e:
-                logger.error("Problem with database commit: %s", e)
+            except Exception as err:
+                logger.error("Problem with database commit: %s", err)
                 raise DBCommitException("Could not commit to db, stopping now.")
 
 
@@ -68,8 +57,8 @@ def task_db_load_abbrevs(recs):
                     session.add(JournalsAbbreviations(masterid=r[0],
                                                       abbreviation=r[1]))
                     session.commit()
-                except Exception as e:
-                    logger.warn("Problem with abbreviation: %s,%s" %
+                except Exception as err:
+                    logger.debug("Problem with abbreviation: %s,%s" %
                                 (r[0], r[1]))
         else:
             logger.info("There were no abbreviations to load!")
@@ -85,8 +74,8 @@ def task_db_load_issn(recs):
                                                     id_type='ISSN',
                                                     id_value=r[1]))
                     session.commit()
-                except Exception as e:
-                    logger.warn("Duplicate ISSN ident skipped: %s,%s" %
+                except Exception as err:
+                    logger.debug("Duplicate ISSN ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -104,8 +93,8 @@ def task_db_load_xref(recs):
                                                     id_type='CROSSREF',
                                                     id_value=r[1]))
                     session.commit()
-                except Exception as e:
-                    logger.warn("Duplicate XREF ident skipped: %s,%s" %
+                except Exception as err:
+                    logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -122,8 +111,8 @@ def task_db_load_publisher(recs):
                     session.add(JournalsPublisher(masterid=r[0], pubname=r[1],
                                                   puburl=r[2]))
                     session.commit()
-                except Exception as e:
-                    logger.warn("Duplicate XREF ident skipped: %s,%s" %
+                except Exception as err:
+                    logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
                     session.flush()
@@ -179,10 +168,10 @@ def task_db_load_raster(recs):
                                                height=height,
                                                embargo=embargo,
                                                options=options))
-                    beew = session.commit()
-                except Exception as e:
-                    logger.warn("Cant load raster data for (%s, %s): %s" %
-                                (r[0], bibstem, e))
+                    session.commit()
+                except Exception as err:
+                    logger.debug("Cant load raster data for (%s, %s): %s" %
+                                (r[0], bibstem, err))
                     session.rollback()
                     session.flush()
         else:
@@ -198,44 +187,13 @@ def task_db_get_bibstem_masterid():
             for record in session.query(JournalsMaster.masterid,
                                         JournalsMaster.bibstem):
                 dictionary[record.bibstem] = record.masterid
-        except Exception as e:
+        except Exception as err:
             logger.error("Error: failed to read bibstem-masterid dict from table master")
             raise DBReadException("Could not read from database!")
     return dictionary
 
 
-@app.task(queue='load-holdings')
-def task_db_load_holdings(bibstem, masterid):
-    with app.session_scope() as session:
-        if masterid:
-            hold = holdings.Holdings()
-            bibstem = str(bibstem)
-            logger.debug("Loading holdings for bibstem: %s" % bibstem)
-            try:
-                output = hold.fetch(bibstem)
-                h_out = hold.process_output()
-                for rec in h_out:
-                    try:
-                        rec_data = json.dumps(rec['holdings'])
-                        rec_vol = rec['volume']
-                        session.add(JournalsHoldings(masterid=masterid,
-                                                     volume=rec_vol,
-                                                     volumes_list=rec_data))
-                        session.commit()
-                    except Exception as e:
-                        logger.warning("Error adding holdings for %s: %s" %
-                                    (bibstem, e))
-                        session.rollback()
-                        session.commit()
-            except Exception as e:
-                logger.debug("Error loading holdings: %s", e)
-                logger.debug("No holdings for bibstem: %s", bibstem)
-        else:
-            logger.error("No holdings data to load!")
-    return
-
-
-@app.task(queue='load-refsources')
+@app.task(queue='load-datafiles')
 def task_db_load_refsource(masterid, refsource):
     with app.session_scope() as session:
         if masterid and refsource:
@@ -244,11 +202,32 @@ def task_db_load_refsource(masterid, refsource):
                 session.add(JournalsRefSource(masterid=masterid,
                                               refsource_list=refsource))
                 session.commit()
-            except Exception as e:
-                logger.warning("Error adding holdings for %s: %s" %
-                               (masterid, e))
+            except Exception as err:
+                logger.debug("Error adding refsources for %s: %s" %
+                               (masterid, err))
                 session.rollback()
                 session.commit()
         else:
             logger.error("No refsource data to load!")
     return
+
+
+def task_checkout_table(tablename):
+    if tablename.lower() not in app.conf.EDITABLE_TABLES:
+        raise InvalidTableException("Tablename %s is not valid" % tablename)
+    try:
+        with app.session_scope() as session:
+            table_record = session.query(JournalsEditControl).filter(JournalsEditControl.tablename.ilike(tablename), JournalsEditControl.editstatus=='active').first()
+            if table_record:
+                sheet = SpreadsheetManager(table=table_record.tablename, sheetid=table_record.editfileid)
+                result = sheet.get_sheet_prop()
+                logger.debug("Table %s is already checked out: Time: %s, ID: %s" % (tablename, table_record.created, table_record.editfileid))
+            else:
+                sheet = SpreadsheetManager(table=tablename)
+                result = sheet.get_sheet_prop()
+                session.add(JournalsEditControl(tablename=tablename, editstatus='active', editfileid=sheet.sheetid))
+                session.commit()
+    except Exception as err:
+        raise TableCheckoutException("Error checking out table %s: %s" % (tablename, err))
+    else:
+        return result

@@ -7,30 +7,11 @@ import urllib3
 from adsputils import load_config
 from bs4 import BeautifulSoup as bs
 from glob import glob
+from journals.exceptions import *
 from journals.refsource import RefCount, RefVolume, RefSource
 
 proj_home = os.path.realpath(os.path.dirname(__file__)+ '/../')
 config = load_config(proj_home=proj_home)
-
-
-class ReadBibstemException(Exception):
-    pass
-
-
-class ReadCanonicalException(Exception):
-    pass
-
-
-class ReadEncodingException(Exception):
-    pass
-
-
-class RequestsException(Exception):
-    pass
-
-
-class ReadRefsourcesException(Exception):
-    pass
 
 
 def parse_bibcodes(bibcode):
