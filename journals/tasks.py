@@ -43,8 +43,8 @@ def task_db_bibstems_to_master(recs):
                     logger.debug("task_db_bibstems_to_master: Bibstem %s already in master", r[0])
             try:
                 session.commit()
-            except Exception as e:
-                logger.error("Problem with database commit: %s", e)
+            except Exception as err:
+                logger.error("Problem with database commit: %s", err)
                 raise DBCommitException("Could not commit to db, stopping now.")
 
 
@@ -57,7 +57,7 @@ def task_db_load_abbrevs(recs):
                     session.add(JournalsAbbreviations(masterid=r[0],
                                                       abbreviation=r[1]))
                     session.commit()
-                except Exception as e:
+                except Exception as err:
                     logger.debug("Problem with abbreviation: %s,%s" %
                                 (r[0], r[1]))
         else:
@@ -74,7 +74,7 @@ def task_db_load_issn(recs):
                                                     id_type='ISSN',
                                                     id_value=r[1]))
                     session.commit()
-                except Exception as e:
+                except Exception as err:
                     logger.debug("Duplicate ISSN ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
@@ -93,7 +93,7 @@ def task_db_load_xref(recs):
                                                     id_type='CROSSREF',
                                                     id_value=r[1]))
                     session.commit()
-                except Exception as e:
+                except Exception as err:
                     logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
@@ -111,7 +111,7 @@ def task_db_load_publisher(recs):
                     session.add(JournalsPublisher(masterid=r[0], pubname=r[1],
                                                   puburl=r[2]))
                     session.commit()
-                except Exception as e:
+                except Exception as err:
                     logger.debug("Duplicate XREF ident skipped: %s,%s" %
                                 (r[0], r[1]))
                     session.rollback()
@@ -169,9 +169,9 @@ def task_db_load_raster(recs):
                                                embargo=embargo,
                                                options=options))
                     session.commit()
-                except Exception as e:
+                except Exception as err:
                     logger.debug("Cant load raster data for (%s, %s): %s" %
-                                (r[0], bibstem, e))
+                                (r[0], bibstem, err))
                     session.rollback()
                     session.flush()
         else:
@@ -187,7 +187,7 @@ def task_db_get_bibstem_masterid():
             for record in session.query(JournalsMaster.masterid,
                                         JournalsMaster.bibstem):
                 dictionary[record.bibstem] = record.masterid
-        except Exception as e:
+        except Exception as err:
             logger.error("Error: failed to read bibstem-masterid dict from table master")
             raise DBReadException("Could not read from database!")
     return dictionary
